@@ -265,11 +265,11 @@ fn file_menu(app: &mut SheetApp, ui: &mut Ui) {
     }
 }
 
-/// System / Light / Dark, as in the View tab's Display theme box (`view.theme`).
+/// UFRGS Noite / UFRGS Dia / System / Light / Dark, as in the View tab's Display theme box (`view.theme`).
 fn theme_choices(app: &mut SheetApp, ui: &mut Ui) {
     let lang = app.ui.language;
     let mode = app.ui.theme_mode();
-    for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
+    for (value, label) in crate::theme::THEMES {
         if ui.radio(mode == value, lang.tr(label)).clicked() {
             act(app, "view.theme", json!({"mode": value}));
             ui.close();
@@ -1439,7 +1439,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
             // in dialogs.rs) — otherwise the prior cell/range selection is left in place, and
             // Del right after inserting deletes the source data instead of the chart.
             Ok(r) => app.selected_chart = r.get("chart").and_then(serde_json::Value::as_u64).and_then(|id| u32::try_from(id).ok()),
-            Err(e) => app.message = Some(("GridCraft".into(), crate::clean_error(&e))),
+            Err(e) => app.message = Some(("FisiPlanilha".into(), crate::clean_error(&e))),
         }
     }
     ui.vertical(|ui| {
@@ -2187,13 +2187,9 @@ fn view(app: &mut SheetApp, ui: &mut Ui) {
     ui.vertical(|ui| {
         ui.label(lang.tr("Display theme"));
         let mode = app.ui.theme_mode();
-        let label = match mode {
-            "system" => "System",
-            "dark" => "Dark",
-            _ => "Light",
-        };
-        egui::ComboBox::from_id_salt("display_theme").selected_text(lang.tr(label)).width(88.0).show_ui(ui, |ui| {
-            for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
+        let label = crate::theme::theme_label(mode);
+        egui::ComboBox::from_id_salt("display_theme").selected_text(lang.tr(label)).width(110.0).show_ui(ui, |ui| {
+            for (value, label) in crate::theme::THEMES {
                 if ui.selectable_label(mode == value, lang.tr(label)).clicked() {
                     act(app, "view.theme", json!({"mode": value}));
                 }
@@ -2248,7 +2244,7 @@ fn automate(app: &mut SheetApp, ui: &mut Ui) {
     if __k.clicked() {
         app.open_dialog("commandSearch", json!({}));
     }
-    let __k = big_button(ui, Icon::Script, "Agent\nControl", "How agents drive GridCraft (MCP / control channel)", false);
+    let __k = big_button(ui, Icon::Script, "Agent\nControl", "How agents drive FisiPlanilha (MCP / control channel)", false);
     control_keytip(app, ui, &__k, "agents");
     if __k.clicked() {
         app.open_dialog("agents", json!({}));
@@ -2258,10 +2254,14 @@ fn automate(app: &mut SheetApp, ui: &mut Ui) {
     if __k.clicked() {
         app.open_dialog("journal", json!({}));
     }
-    let __k = big_button(ui, Icon::Script, "About\nGridCraft", "Version, contributors and the AI models that helped", false);
+    let __k = big_button(ui, Icon::Script, "About\nFisiPlanilha", "Version, contributors and the AI models that helped", false);
     control_keytip(app, ui, &__k, "about");
     if __k.clicked() {
         app.open_dialog("about", json!({}));
+    }
+    // Suíte FisiLab: the suite's About window (credits, manifesto, UFRGS and CTA).
+    if big_button(ui, Icon::Info, "Suíte\nFisiLab", fisilab_brand::ABOUT_MENU_LABEL, false).clicked() {
+        fisilab_brand::about::open(ui.ctx());
     }
 }
 

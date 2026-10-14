@@ -44,6 +44,30 @@ use serde_json::{Value as Json, json};
 pub use control::{ControlRequest, ControlResponse};
 pub mod desktop_theme;
 
+/// How this app presents itself in the Suíte FisiLab (splash screen and the suite's About window).
+pub const APP_INFO: fisilab_brand::AppInfo = fisilab_brand::AppInfo {
+    name: "FisiPlanilha",
+    tagline: "Planilhas",
+    equivalent: "Microsoft Excel",
+    version: env!("CARGO_PKG_VERSION"),
+    upstream_name: "GridCraft",
+    upstream_url: UPSTREAM_URL,
+    upstream_copyright: "© 2026 ArtCraft Team e contribuidores do GridCraft",
+};
+
+/// The project this app is based on.
+pub const UPSTREAM_URL: &str = "https://github.com/storytold/gridcraft";
+/// Where users report problems with this build.
+pub const ISSUES_URL: &str = "https://github.com/mrcandrade/fisiplanilha/issues";
+
+/// The links the Help menus and the About dialog offer: `(label, url)`.
+pub const COMMUNITY_LINKS: [(&str, &str); 4] = [
+    ("Site da Suíte FisiLab", fisilab_brand::SUITE_URL),
+    ("Manifesto pelas tecnologias livres", fisilab_brand::MANIFESTO_URL),
+    ("Projeto original (GridCraft)", UPSTREAM_URL),
+    ("Reportar um problema", ISSUES_URL),
+];
+
 /// Persisted UI preferences.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -51,6 +75,10 @@ pub struct UiState {
     /// The manual preference, retained when following the system appearance.
     pub dark: bool,
     pub system_theme: bool,
+    /// The colour family: the Suíte FisiLab "UFRGS" themes (default) or the upstream classic
+    /// ones. `dark` / `system_theme` pick its variant. A malformed saved value reads as UFRGS.
+    #[serde(deserialize_with = "lenient_palette")]
+    pub palette: theme::Palette,
     pub ribbon_tab: String,
     pub ribbon_collapsed: bool,
     pub formula_bar_expanded: bool,
@@ -87,6 +115,11 @@ pub fn clamp_interface_scale(percent: f64) -> Option<u16> {
     percent.is_finite().then(|| percent.round().clamp(INTERFACE_SCALE_MIN as f64, INTERFACE_SCALE_MAX as f64) as u16)
 }
 
+fn lenient_palette<'de, D: serde::Deserializer<'de>>(d: D) -> Result<theme::Palette, D::Error> {
+    let v = Json::deserialize(d)?;
+    Ok(serde_json::from_value(v).unwrap_or_default())
+}
+
 fn lenient_interface_scale<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16, D::Error> {
     let v = Json::deserialize(d)?;
     Ok(v.as_f64().and_then(clamp_interface_scale).unwrap_or(100))
@@ -95,8 +128,10 @@ fn lenient_interface_scale<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16
 impl Default for UiState {
     fn default() -> Self {
         UiState {
-            dark: false,
+            // Suíte FisiLab: "UFRGS Noite" is the default theme.
+            dark: true,
             system_theme: false,
+            palette: theme::Palette::Ufrgs,
             ribbon_tab: "Home".into(),
             ribbon_collapsed: false,
             formula_bar_expanded: false,
@@ -127,13 +162,14 @@ impl UiState {
         clamp_interface_scale(self.interface_scale as f64).unwrap_or(100) as f32 / 100.0
     }
 
+    /// The `view.theme` mode of the preference: `system`, or one of the four fixed themes.
     pub fn theme_mode(&self) -> &'static str {
-        if self.system_theme {
-            "system"
-        } else if self.dark {
-            "dark"
-        } else {
-            "light"
+        match (self.system_theme, self.palette, self.dark) {
+            (true, ..) => "system",
+            (false, theme::Palette::Ufrgs, true) => "ufrgsNoite",
+            (false, theme::Palette::Ufrgs, false) => "ufrgsDia",
+            (false, theme::Palette::Classic, true) => "dark",
+            (false, theme::Palette::Classic, false) => "light",
         }
     }
 }
@@ -322,6 +358,12 @@ impl SheetApp {
     pub fn setup_context_for_language(ctx: &egui::Context, dark: bool, language: i18n::Language) {
         ctx.set_fonts(theme::font_definitions_for_language(language));
         theme::apply(ctx, dark);
+    }
+
+    /// [`SheetApp::setup_context_for_language`] with the colour palette of the preferences.
+    pub fn setup_context_for(ctx: &egui::Context, ui: &UiState) {
+        ctx.set_fonts(theme::font_definitions_for_language(ui.language));
+        theme::apply_palette(ctx, ui.palette, ui.dark);
     }
 
     /// The font names the active workbook uses: every style's font plus the theme's heading/body
@@ -538,7 +580,7 @@ impl SheetApp {
         if e.contains("is not available right now") {
             self.toast = Some((e, now_ms()));
         } else {
-            self.message = Some(("GridCraft".into(), clean_error(&e)));
+            self.message = Some(("FisiPlanilha".into(), clean_error(&e)));
         }
     }
 
@@ -592,11 +634,12 @@ impl SheetApp {
             "view.theme" => {
                 match p.get("mode").and_then(Json::as_str) {
                     Some("system") => self.ui.system_theme = true,
-                    Some(mode @ ("light" | "dark")) => {
-                        self.ui.dark = mode == "dark";
+                    Some(mode @ ("ufrgsNoite" | "ufrgsDia" | "light" | "dark")) => {
+                        self.ui.palette = if mode.starts_with("ufrgs") { theme::Palette::Ufrgs } else { theme::Palette::Classic };
+                        self.ui.dark = matches!(mode, "ufrgsNoite" | "dark");
                         self.ui.system_theme = false;
                     }
-                    _ => return Some(Err("theme mode must be system, light, or dark".into())),
+                    _ => return Some(Err("theme mode must be ufrgsNoite, ufrgsDia, system, light, or dark".into())),
                 }
                 Ok(json!({"mode": self.ui.theme_mode()}))
             }
@@ -689,7 +732,7 @@ impl SheetApp {
         for req in self.session.take_ui_requests() {
             match req {
                 UiRequest::Dialog(name, params) => self.open_dialog(&name, params),
-                UiRequest::Message(m) => self.message = Some(("GridCraft".into(), m)),
+                UiRequest::Message(m) => self.message = Some(("FisiPlanilha".into(), m)),
                 UiRequest::EditCell(text) => {
                     let text = text.map(|text| {
                         self.session
@@ -766,7 +809,7 @@ impl SheetApp {
             Ok(r) => self.after_open(Some(path), &r),
             // A password-protected workbook: ask for the password; the dialog opens it.
             Err(e) if e.contains(gridcraft_engine::io::PASSWORD_REQUIRED) => self.open_dialog("openPassword", json!({"path": path})),
-            Err(e) => self.message = Some(("GridCraft".into(), clean_error(&e))),
+            Err(e) => self.message = Some(("FisiPlanilha".into(), clean_error(&e))),
         }
         self.after_engine();
     }
@@ -801,7 +844,7 @@ impl SheetApp {
         let vba: Vec<&str> = msgs.iter().copied().filter(|m| m.to_lowercase().contains("macro") || m.contains("VBA")).collect();
         if !vba.is_empty() {
             self.notice = Some(Notice {
-                text: "This workbook contains VBA macros. GridCraft keeps them intact when you save, but does not run them.".into(),
+                text: "This workbook contains VBA macros. FisiPlanilha keeps them intact when you save, but does not run them.".into(),
                 kind: NoticeKind::Warning,
                 action: Some(("What this means".into(), "macros".into())),
             });
@@ -909,7 +952,7 @@ impl SheetApp {
         let text = match self.session.active().map(|d| formula_locale::canonical(&text, ed.locale, &d.wb, ed.sheet, ed.cell)) {
             Some(Ok(text)) => text,
             Some(Err(error)) => {
-                self.message = Some(("GridCraft".into(), error.to_string()));
+                self.message = Some(("FisiPlanilha".into(), error.to_string()));
                 self.editor = Some(ed);
                 self.session.mode = gridcraft_engine::Mode::Edit;
                 return false;
@@ -921,7 +964,7 @@ impl SheetApp {
             && let Some((dv, msg)) = gridcraft_engine::cmd::data::check_validation(&d.wb, ed.sheet, ed.cell, &text)
         {
             if dv.error_style == gridcraft_engine::model::ErrorStyle::Stop {
-                let title = if dv.error_title.is_empty() { "GridCraft".to_string() } else { dv.error_title.clone() };
+                let title = if dv.error_title.is_empty() { "FisiPlanilha".to_string() } else { dv.error_title.clone() };
                 self.message = Some((title, msg));
                 self.editor = Some(ed);
                 self.session.mode = gridcraft_engine::Mode::Edit;
@@ -943,7 +986,7 @@ impl SheetApp {
                 true
             }
             Err(e) => {
-                self.message = Some(("GridCraft".into(), clean_error(&e)));
+                self.message = Some(("FisiPlanilha".into(), clean_error(&e)));
                 self.editor = Some(ed);
                 self.session.mode = gridcraft_engine::Mode::Edit;
                 false
@@ -1002,7 +1045,7 @@ impl SheetApp {
             if self.fonts_set {
                 self.fonts_ready = true;
             } else {
-                SheetApp::setup_context_for_language(ctx, self.ui.dark, self.ui.language);
+                SheetApp::setup_context_for(ctx, &self.ui);
                 self.fonts_set = true;
                 // The rebuilt set has no workbook fonts yet: bind them again once it is active.
                 self.fonts_bound.clear();
@@ -1028,6 +1071,10 @@ impl SheetApp {
                     ctx.request_repaint();
                 }
             }
+        }
+        if theme::palette(ctx) != self.ui.palette {
+            theme::apply_palette(ctx, self.ui.palette, self.ui.dark);
+            ctx.request_repaint();
         }
         if let Some(answer) = self.desktop_theme.take_change() {
             self.desktop_dark = Some(answer);
@@ -1075,7 +1122,7 @@ impl SheetApp {
                     self.backstage = None;
                     self.open_dialog("openPassword", json!({"name": name, "base64": b64}));
                 }
-                Err(e) => self.message = Some(("GridCraft".into(), clean_error(&e))),
+                Err(e) => self.message = Some(("FisiPlanilha".into(), clean_error(&e))),
             }
             self.after_engine();
         }
@@ -1096,6 +1143,10 @@ impl SheetApp {
         self.poll_printing(&ctx);
         if !self.fonts_ready || self.fonts_rebind {
             ctx.request_repaint();
+            // The brand overlays keep animating while a font change settles.
+            if self.fonts_ready {
+                fisilab_brand::frame(&ctx, &APP_INFO);
+            }
             return;
         }
         let t0 = now_ms();
@@ -1131,6 +1182,8 @@ impl SheetApp {
         dialogs::show(self, &ctx);
         widgets::message_box(self, &ctx);
         widgets::toast(self, &ctx);
+        // Suíte FisiLab: its About window and the opening splash, over everything else.
+        fisilab_brand::frame(&ctx, &APP_INFO);
         control::issue_screenshots(self, &ctx);
         control::collect_screenshots(self, &ctx);
         if !ctx.input(|i| i.focused) {
@@ -1158,7 +1211,8 @@ impl SheetApp {
         }
         // Window title.
         if let Some(d) = self.session.active() {
-            let title = format!("{}{}", d.display_title(), if d.is_dirty() { " — Edited" } else { "" });
+            let edited = if d.is_dirty() { format!(" — {}", self.ui.language.tr("Edited")) } else { String::new() };
+            let title = format!("{}{edited} — FisiPlanilha", d.display_title());
             if self.grid.last_title.as_deref() != Some(title.as_str()) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
                 self.grid.last_title = Some(title);

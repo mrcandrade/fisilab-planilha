@@ -4,15 +4,21 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
-default-run = "gridcraft"
-description = "GridCraft desktop app"
+default-run = "fisiplanilha"
+description = "FisiPlanilha desktop app (Suíte FisiLab, based on GridCraft)"
 
 [lints]
 workspace = true
 
+# The executable is fisiplanilha(.exe); the package keeps its upstream name.
+[[bin]]
+name = "fisiplanilha"
+path = "src/main.rs"
+
 [dependencies]
 gridcraft-engine = { workspace = true }
 gridcraft-ui-egui = { workspace = true }
+fisilab-brand = { workspace = true }
 eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit", "wayland", "x11"] }
 egui = { workspace = true }
 serde_json = { workspace = true }
@@ -20,7 +26,7 @@ log = { workspace = true }
 image = { workspace = true }
 
 [build-dependencies]
-# Icon + VERSIONINFO for gridcraft.exe; build.rs only uses it when the target is Windows.
+# Icon + VERSIONINFO for fisiplanilha.exe; build.rs only uses it when the target is Windows.
 winresource = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

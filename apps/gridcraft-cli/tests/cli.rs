@@ -5,16 +5,16 @@ use std::path::PathBuf;
 use std::process::{Command, Output, Stdio};
 
 fn bin() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_gridcraft-cli"))
+    Command::new(env!("CARGO_BIN_EXE_fisiplanilha-cli"))
 }
 
 fn run(args: &[&str]) -> Output {
-    bin().args(args).output().expect("run gridcraft-cli")
+    bin().args(args).output().expect("run fisiplanilha-cli")
 }
 
 fn ok(args: &[&str]) -> String {
     let o = run(args);
-    assert!(o.status.success(), "gridcraft-cli {args:?} failed: {}", String::from_utf8_lossy(&o.stderr));
+    assert!(o.status.success(), "fisiplanilha-cli {args:?} failed: {}", String::from_utf8_lossy(&o.stderr));
     String::from_utf8(o.stdout).unwrap()
 }
 
@@ -26,8 +26,8 @@ fn tmpdir(name: &str) -> PathBuf {
 
 #[test]
 fn version_and_usage() {
-    assert_eq!(ok(&["--version"]).trim(), format!("gridcraft-cli {}", env!("CARGO_PKG_VERSION")));
-    assert_eq!(ok(&["version"]).trim(), format!("gridcraft-cli {}", env!("CARGO_PKG_VERSION")));
+    assert_eq!(ok(&["--version"]).trim(), format!("fisiplanilha-cli {}", env!("CARGO_PKG_VERSION")));
+    assert_eq!(ok(&["version"]).trim(), format!("fisiplanilha-cli {}", env!("CARGO_PKG_VERSION")));
     let o = run(&["frobnicate"]);
     assert!(!o.status.success());
     assert!(String::from_utf8_lossy(&o.stderr).contains("unknown subcommand"));

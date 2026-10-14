@@ -174,8 +174,12 @@ fn tree() -> Vec<(&'static str, Vec<Entry>)> {
             vec![
                 ("Agent Control (MCP)…", "dialog:agents", None),
                 ("Contributors…", "dialog:about:Contributors", None),
-                ("GridCraft on getartcraft.com", "url:https://getartcraft.com/apps/gridcraft", None),
-                ("Join the ArtCraft Discord…", "url:https://discord.gg/artcraft", None),
+                ("-", "", None),
+                ("Sobre a Suíte FisiLab…", "help.fisilab", None),
+                ("Site da Suíte FisiLab", "url:https://github.com/mrcandrade/larfic/tree/main/suite-fisilab", None),
+                ("Manifesto pelas tecnologias livres", "url:https://github.com/mrcandrade/larfic/blob/main/suite-fisilab/MANIFESTO.md", None),
+                ("Projeto original (GridCraft)", "url:https://github.com/storytold/gridcraft", None),
+                ("Reportar um problema", "url:https://github.com/mrcandrade/fisiplanilha/issues", None),
             ],
         ),
     ]
@@ -188,11 +192,8 @@ pub struct NativeMenu {
 }
 
 fn select_theme(app: &mut SheetApp, id: &str) -> bool {
-    let mode = match id {
-        "theme:system" => "system",
-        "theme:light" => "light",
-        "theme:dark" => "dark",
-        _ => return false,
+    let Some(mode) = id.strip_prefix("theme:").filter(|m| gridcraft_ui_egui::theme::THEMES.iter().any(|(t, _)| t == m)) else {
+        return false;
     };
     app.run_or_alert("view.theme", json!({"mode": mode}));
     true
@@ -201,8 +202,8 @@ fn select_theme(app: &mut SheetApp, id: &str) -> bool {
 impl NativeMenu {
     pub fn install(ctx: &egui::Context) -> NativeMenu {
         let menu = Menu::new();
-        let app_menu = Submenu::new("GridCraft", true);
-        let about = MenuItem::with_id("dialog:about", "About GridCraft", true, None);
+        let app_menu = Submenu::new("FisiPlanilha", true);
+        let about = MenuItem::with_id("dialog:about", "About FisiPlanilha", true, None);
         let _ = app_menu.append_items(&[
             &about,
             &PredefinedMenuItem::separator(),
@@ -226,7 +227,7 @@ impl NativeMenu {
                 }
                 if id == "view.theme" {
                     let themes = Submenu::new(label, true);
-                    for (mode, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
+                    for (mode, label) in gridcraft_ui_egui::theme::THEMES {
                         let item = CheckMenuItem::with_id(format!("theme:{mode}"), label, true, false, None);
                         let _ = themes.append(&item);
                         theme_items.push((mode, item));
@@ -290,6 +291,10 @@ impl NativeMenu {
             if select_theme(app, &id) {
                 continue;
             }
+            if id == "help.fisilab" {
+                fisilab_brand::about::open(ctx);
+                continue;
+            }
             if let Some(url) = id.strip_prefix("url:") {
                 if let Some(open) = &app.services.open_url {
                     open(url);
@@ -338,9 +343,20 @@ mod tests {
     }
 
     #[test]
+    fn help_menu_links_match_the_suite_links() {
+        let tree = tree();
+        let (_, help) = tree.iter().find(|(title, _)| *title == "Help").expect("Help menu");
+        assert!(help.iter().any(|e| e.0 == fisilab_brand::ABOUT_MENU_LABEL && e.1 == "help.fisilab"));
+        for (label, url) in gridcraft_ui_egui::COMMUNITY_LINKS {
+            assert!(help.iter().any(|e| e.0 == label && e.1.strip_prefix("url:") == Some(url)), "{label}");
+        }
+        assert!(help.iter().all(|e| !e.1.contains("artcraft")));
+    }
+
+    #[test]
     fn theme_choices_use_the_shared_preference_command() {
         let mut app = SheetApp::new(gridcraft_engine::Session::new(), Default::default());
-        for mode in ["dark", "system", "light"] {
+        for mode in ["ufrgsDia", "dark", "system", "ufrgsNoite", "light"] {
             assert!(select_theme(&mut app, &format!("theme:{mode}")));
             assert_eq!(app.ui.theme_mode(), mode);
             assert!(app.message.is_none());

@@ -24,6 +24,8 @@ gridcraft-engine = { path = "crates/engine" }
 gridcraft-ui-egui = { path = "crates/ui-egui" }
 gridcraft-mcp = { path = "crates/mcp" }
 gridcraft-pdf = { path = "crates/pdf" }
+# Suíte FisiLab (UFRGS): palette, CTA splash and the suite About window.
+fisilab-brand = { path = "crates/fisilab-brand" }
 
 # foundation
 thiserror = "2"

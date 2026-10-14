@@ -1,6 +1,6 @@
-//! GridCraft desktop app.
+//! FisiPlanilha desktop app (Suíte FisiLab; based on GridCraft).
 //!
-//! Usage: `gridcraft [--control <port>] [--sample <name>] [files…]`
+//! Usage: `fisiplanilha [--control <port>] [--sample <name>] [files…]`
 //!
 //! `--control <port>` (or `GRIDCRAFT_CONTROL_PORT`) starts a localhost JSON-lines control
 //! server: `{"id":1,"method":"ui.inspect","params":{}}` → `{"id":1,"ok":true,"result":…}`.
@@ -55,6 +55,7 @@ impl eframe::App for App {
         }
     }
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        // Draws the Suíte FisiLab splash and About window too (`fisilab_brand::frame`).
         self.0.ui(ui);
     }
     fn on_exit(&mut self) {
@@ -75,14 +76,14 @@ impl eframe::App for App {
 
 fn config_dir() -> Option<std::path::PathBuf> {
     if cfg!(target_os = "macos") {
-        std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join("Library/Application Support/GridCraft"))
+        std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join("Library/Application Support/FisiPlanilha"))
     } else if cfg!(windows) {
-        std::env::var_os("APPDATA").map(|a| std::path::PathBuf::from(a).join("GridCraft"))
+        std::env::var_os("APPDATA").map(|a| std::path::PathBuf::from(a).join("FisiPlanilha"))
     } else {
         std::env::var_os("XDG_CONFIG_HOME")
             .map(std::path::PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".config")))
-            .map(|c| c.join("gridcraft"))
+            .map(|c| c.join("fisiplanilha"))
     }
 }
 
@@ -101,10 +102,10 @@ fn load_prefs(app: &mut SheetApp) {
     if !prefs_enabled() {
         return;
     }
-    // First run (or a ui.json without a usable language): follow the desktop's language.
-    app.ui.language = gridcraft_ui_egui::i18n::Language::system();
-    // ...and its light or dark appearance (#239), until a theme is chosen and saved in ui.json.
-    app.ui.system_theme = true;
+    // First run (or a ui.json without a usable language): Brazilian Portuguese, the Suíte
+    // FisiLab's language. The theme starts as "UFRGS Noite" (`UiState::default`) until another
+    // one is chosen and saved in ui.json.
+    app.ui.language = gridcraft_ui_egui::i18n::Language::PtBr;
     let Some(dir) = config_dir() else { return };
     if let Ok(b) = std::fs::read(dir.join("ui.json"))
         && let Ok(ui) = serde_json::from_slice::<gridcraft_ui_egui::UiState>(&b)
@@ -222,9 +223,9 @@ fn open_with_system(target: &str) {
 
 fn icon() -> Option<egui::IconData> {
     #[cfg(target_os = "macos")]
-    let bytes = include_bytes!("../../../assets/app-icon/gridcraft-macos-512.png");
+    let bytes = include_bytes!("../../../assets/fisilab/fisiplanilha-512.png");
     #[cfg(not(target_os = "macos"))]
-    let bytes = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.gridcraft.png");
+    let bytes = include_bytes!("../../../assets/fisilab/fisiplanilha-256.png");
     let img = image::load_from_memory(bytes).ok()?.to_rgba8();
     Some(egui::IconData { width: img.width(), height: img.height(), rgba: img.into_raw() })
 }
@@ -247,12 +248,12 @@ fn main() -> eframe::Result<()> {
             log::error!("{report}");
         } else {
             // `eprintln!` panics on a broken stderr pipe, and a panic inside the panic hook aborts.
-            let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("gridcraft: {report}\n"));
+            let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("fisiplanilha: {report}\n"));
         }
     }));
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.iter().any(|a| a == "--version" || a == "-V") {
-        println!("GridCraft {}", env!("CARGO_PKG_VERSION"));
+        println!("FisiPlanilha {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
     let mut control_port: Option<u16> = std::env::var("GRIDCRAFT_CONTROL_PORT").ok().and_then(|p| p.parse().ok());
@@ -281,7 +282,7 @@ fn main() -> eframe::Result<()> {
     if let Some(logger) = logger {
         match log_dir().filter(|_| prefs_enabled()) {
             Some(dir) => match logger.attach_dir(&dir) {
-                Ok(path) => log::info!("GridCraft {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
+                Ok(path) => log::info!("FisiPlanilha {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
                 // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
                 Err(e) => log::warn!("no log file: {e}"),
             },
@@ -297,6 +298,8 @@ fn main() -> eframe::Result<()> {
     if session.documents().is_empty() {
         session.new_workbook();
     }
+    // Suíte FisiLab: the CTA opening animation (drawn by `fisilab_brand::frame` each frame).
+    fisilab_brand::splash::enable();
     let mut app = SheetApp::new(session, services());
     app.watch_desktop_theme();
     app.after_engine(); // Show warnings from the sample.
@@ -309,10 +312,10 @@ fn main() -> eframe::Result<()> {
         app.open_path(f);
     }
     let mut viewport = egui::ViewportBuilder::default()
-        .with_title("GridCraft")
+        .with_title("FisiPlanilha")
         .with_inner_size([1440.0, 900.0])
         .with_min_inner_size([640.0, 420.0])
-        .with_app_id("ai.storyteller.gridcraft")
+        .with_app_id("br.ufrgs.fisilab.fisiplanilha")
         .with_drag_and_drop(true);
     if cfg!(target_os = "macos") {
         viewport = viewport.with_fullsize_content_view(true).with_titlebar_shown(false).with_title_shown(false);
@@ -344,13 +347,13 @@ fn main() -> eframe::Result<()> {
     let pending = std::cell::Cell::new(Some(app));
     let run = |options: eframe::NativeOptions| {
         eframe::run_native(
-            "GridCraft",
+            "FisiPlanilha",
             options,
             Box::new(|cc| {
                 let Some(mut app) = pending.take() else {
                     return Err("the app was already created".into());
                 };
-                SheetApp::setup_context_for_language(&cc.egui_ctx, app.ui.dark, app.ui.language);
+                SheetApp::setup_context_for(&cc.egui_ctx, &app.ui);
                 if let Some(port) = control_port {
                     match control_server::start(port, cc.egui_ctx.clone()) {
                         Ok(rx) => app.control_rx = Some(rx),
@@ -408,7 +411,7 @@ mod packaging_tests {
         assert!(mac.iter().any(|e| e == "xlsx"), "Info.plist.in extensions not found: {mac:?}");
         assert_eq!(mac, win);
         for ext in &mac {
-            assert!(FileKind::from_path(&format!("book.{ext}")).is_some(), "GridCraft doesn't open .{ext}");
+            assert!(FileKind::from_path(&format!("book.{ext}")).is_some(), "FisiPlanilha doesn't open .{ext}");
         }
     }
 }

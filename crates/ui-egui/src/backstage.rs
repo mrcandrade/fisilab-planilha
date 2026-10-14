@@ -888,13 +888,13 @@ pub fn export_as(app: &mut SheetApp, fmt: &str) -> bool {
         return match app.run(id, json!({"path": path})) {
             Ok(_) => true,
             Err(e) => {
-                app.message = Some(("GridCraft".into(), crate::clean_error(&e)));
+                app.message = Some(("FisiPlanilha".into(), crate::clean_error(&e)));
                 false
             }
         };
     }
     if app.services.download.is_none() {
-        app.message = Some(("GridCraft".into(), "Exporting needs a file picker, which this window doesn't have.".into()));
+        app.message = Some(("FisiPlanilha".into(), "Exporting needs a file picker, which this window doesn't have.".into()));
         return false;
     }
     if fmt == "pdf" {
@@ -902,7 +902,7 @@ pub fn export_as(app: &mut SheetApp, fmt: &str) -> bool {
         return match app.run(id, json!({})) {
             Ok(_) => true,
             Err(e) => {
-                app.message = Some(("GridCraft".into(), crate::clean_error(&e)));
+                app.message = Some(("FisiPlanilha".into(), crate::clean_error(&e)));
                 false
             }
         };
@@ -921,7 +921,7 @@ pub fn export_as(app: &mut SheetApp, fmt: &str) -> bool {
             }
         }
         Err(e) => {
-            app.message = Some(("GridCraft".into(), crate::clean_error(&e)));
+            app.message = Some(("FisiPlanilha".into(), crate::clean_error(&e)));
             false
         }
     }
@@ -933,13 +933,9 @@ fn options(app: &mut SheetApp, ui: &mut Ui) {
     egui::Grid::new("backstage_options_general").num_columns(2).spacing(vec2(18.0, 10.0)).show(ui, |ui| {
         ui.label(lang.tr("Display theme"));
         let mode = app.ui.theme_mode();
-        let current = match mode {
-            "system" => "System",
-            "dark" => "Dark",
-            _ => "Light",
-        };
+        let current = crate::theme::theme_label(mode);
         egui::ComboBox::from_id_salt("backstage_theme").width(160.0).selected_text(lang.tr(current)).show_ui(ui, |ui| {
-            for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
+            for (value, label) in crate::theme::THEMES {
                 if ui.selectable_label(mode == value, lang.tr(label)).clicked() {
                     app.run_or_alert("view.theme", json!({"mode": value}));
                 }

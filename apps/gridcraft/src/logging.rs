@@ -36,7 +36,7 @@ pub const MAX_FILE_BYTES: u64 = 16 * 1024 * 1024;
 /// Records kept in memory until the log file is attached.
 pub const MAX_PENDING: usize = 512;
 /// The built-in filter when `RUST_LOG` is unset or empty.
-pub const DEFAULT_FILTER: &str = "warn,gridcraft*=info";
+pub const DEFAULT_FILTER: &str = "warn,gridcraft*=info,fisiplanilha=info";
 
 /// Per-target level filter parsed from env_logger-style directives.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -315,6 +315,8 @@ mod tests {
         let f = Filter::parse(DEFAULT_FILTER);
         assert_eq!(f.level_for("gridcraft"), LevelFilter::Info);
         assert_eq!(f.level_for("gridcraft::control_server"), LevelFilter::Info);
+        // The desktop binary is `fisiplanilha` (Suíte FisiLab), so its own records use that target.
+        assert_eq!(f.level_for("fisiplanilha::control_server"), LevelFilter::Info);
         assert_eq!(f.level_for("gridcraft_engine::sample"), LevelFilter::Info);
         assert_eq!(f.level_for("gridcraft_ui_egui::control"), LevelFilter::Info);
         assert_eq!(f.level_for("wgpu_core::device"), LevelFilter::Warn);
