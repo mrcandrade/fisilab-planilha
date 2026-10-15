@@ -79,3 +79,10 @@ lista o que foi alterado em relação ao GridCraft 0.7.0 e por quê.
   código e a documentação técnica em `docs/` (histórico do projeto original).
 - As licenças (`LICENSE-MIT`, `LICENSE-APACHE`) e o `ATTRIBUTION.md` do projeto original.
 - O aplicativo web (`apps/gridcraft-web`) só teve o nome visível trocado.
+
+## Segurança e privacidade
+- O salvamento automático (que sobrescreve o `.xlsx` aberto, sem cópia de segurança) já vem
+  desativado em uma instalação nova (`GridState::default`); só é ativado se o usuário ligar a opção
+  em Arquivo › Opções › Salvar ou o botão "Salvamento Automático" da barra de título. A opção não é
+  gravada entre sessões, então o aplicativo sempre abre com ele desligado. Foi apenas documentado no
+  código e coberto por um teste (`autosave_is_off_by_default_and_can_be_toggled`).

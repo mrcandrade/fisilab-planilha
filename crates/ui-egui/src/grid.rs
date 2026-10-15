@@ -3322,6 +3322,17 @@ mod tests {
     use super::*;
 
     #[test]
+    fn autosave_is_off_by_default_and_can_be_toggled() {
+        // FisiLab: autosave overwrites the opened .xlsx without a backup, so it is opt-in.
+        let mut g = GridState::default();
+        assert!(!g.autosave());
+        g.toggle_autosave();
+        assert!(g.autosave());
+        g.toggle_autosave();
+        assert!(!g.autosave());
+    }
+
+    #[test]
     fn wheel_zoom_steps_along_the_ladder_and_stops_at_100() {
         for (from, zoom_in, to) in [
             (100, true, 120),

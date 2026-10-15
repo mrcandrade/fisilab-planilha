@@ -1176,7 +1176,8 @@ impl SheetApp {
             }
         }
         self.perf.last = now;
-        // AutoSave: save workbooks that have a file shortly after they change.
+        // AutoSave: save workbooks that have a file shortly after they change. Opt-in (off by
+        // default, see GridState::autosave): it overwrites the opened file without a backup.
         if self.grid.autosave
             && self.editor.is_none()
             && self.text_box_editor.is_none()
