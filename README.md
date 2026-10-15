@@ -42,8 +42,8 @@
   executado por um canal de controle JSON, por um servidor **MCP** ou pela linha de comando
   (`fisilab-planilha-cli`).
 - **Sem assinatura:** sem servidor de licenças e sem telemetria. A interface está disponível em
-  português do Brasil (padrão) e em outros idiomas, com os temas de cores **UFRGS Noite** (padrão)
-  e **UFRGS Dia**.
+  português do Brasil (na primeira abertura) e em outros idiomas, com a paleta original do
+  GridCraft e os temas **Noite** (escuro) e **Dia** (claro).
 
 ## Instalação
 

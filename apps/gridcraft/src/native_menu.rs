@@ -356,7 +356,7 @@ mod tests {
     #[test]
     fn theme_choices_use_the_shared_preference_command() {
         let mut app = SheetApp::new(gridcraft_engine::Session::new(), Default::default());
-        for mode in ["ufrgsDia", "dark", "system", "ufrgsNoite", "light"] {
+        for mode in ["dark", "system", "light"] {
             assert!(select_theme(&mut app, &format!("theme:{mode}")));
             assert_eq!(app.ui.theme_mode(), mode);
             assert!(app.message.is_none());

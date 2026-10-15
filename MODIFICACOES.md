@@ -36,13 +36,14 @@ lista o que foi alterado em relação ao GridCraft 0.7.0 e por quê.
   `fisilab-planilha`, e o Rust usa `fisilab_planilha` como alvo dos logs).
 
 ### Identidade visual da Suíte FisiLab
-- Novo crate `crates/fisilab-brand` (comum a toda a suíte): paleta, tela de abertura com a logo do
-  CTA e a janela "Sobre a Suíte FisiLab".
-- Temas **UFRGS Noite** (escuro, padrão) e **UFRGS Dia** (claro), primeiros da lista de temas
-  (Exibir ▸ Tema, Arquivo ▸ Opções, botão de modo escuro da barra de título e menu do macOS). As
-  cores vêm da paleta da suíte; o layout é o mesmo do GridCraft. Os temas originais "Claro" e
-  "Escuro" e a opção "Sistema" continuam disponíveis. O conteúdo do documento (grade branca, linhas
-  de grade e texto preto das células) não mudou.
+- Novo crate `crates/fisilab-brand` (comum a toda a suíte): tela de abertura com a logo do CTA e
+  a janela "Sobre a Suíte FisiLab".
+- Paleta original do GridCraft, sem alterações. Os temas original claro e escuro aparecem como
+  **Noite** (escuro) e **Dia** (claro), primeiros da lista (Exibir ▸ Tema, Arquivo ▸ Opções e menu
+  do macOS), seguidos de "Sistema". O tema padrão é o do GridCraft (claro, ou o do sistema na
+  primeira abertura). O comando `view.theme` também aceita `noite`/`dia` (e `night`/`day`).
+- Português do Brasil na primeira abertura (definido no aplicativo desktop; a biblioteca mantém o
+  padrão original).
 - Tela de abertura animada com a logo do CTA ao iniciar o programa.
 - Item "Sobre a Suíte FisiLab…" na guia Automatizar (ao lado de "Sobre o Planilha"), na caixa
   Sobre e no menu Ajuda do macOS.

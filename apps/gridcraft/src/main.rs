@@ -103,9 +103,10 @@ fn load_prefs(app: &mut SheetApp) {
         return;
     }
     // First run (or a ui.json without a usable language): Brazilian Portuguese, the Suíte
-    // FisiLab's language. The theme starts as "UFRGS Noite" (`UiState::default`) until another
-    // one is chosen and saved in ui.json.
+    // FisiLab's language (the library default stays upstream's).
     app.ui.language = gridcraft_ui_egui::i18n::Language::PtBr;
+    // ...and the desktop's light or dark appearance (#239), until a theme is chosen and saved.
+    app.ui.system_theme = true;
     let Some(dir) = config_dir() else { return };
     if let Ok(b) = std::fs::read(dir.join("ui.json"))
         && let Ok(ui) = serde_json::from_slice::<gridcraft_ui_egui::UiState>(&b)
@@ -353,7 +354,7 @@ fn main() -> eframe::Result<()> {
                 let Some(mut app) = pending.take() else {
                     return Err("the app was already created".into());
                 };
-                SheetApp::setup_context_for(&cc.egui_ctx, &app.ui);
+                SheetApp::setup_context_for_language(&cc.egui_ctx, app.ui.dark, app.ui.language);
                 if let Some(port) = control_port {
                     match control_server::start(port, cc.egui_ctx.clone()) {
                         Ok(rx) => app.control_rx = Some(rx),

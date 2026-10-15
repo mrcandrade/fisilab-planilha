@@ -53,8 +53,7 @@ fn select_ribbon_theme(h: &mut egui_kittest::Harness<'static, SheetApp>, label: 
 
 fn assert_appearance(h: &egui_kittest::Harness<'static, SheetApp>, dark: bool) {
     let visuals = &h.ctx.global_style().visuals;
-    // The variant of the chosen palette (Suíte FisiLab "UFRGS" by default, or the classic one).
-    let tokens = Tokens::of(h.state().ui.palette, dark);
+    let tokens = if dark { Tokens::dark() } else { Tokens::light() };
     assert_eq!(visuals.dark_mode, dark);
     assert_eq!(visuals.panel_fill, tokens.window);
     assert_eq!(visuals.window_fill, tokens.menu_bg);
@@ -90,7 +89,7 @@ fn system_tracks_live_os_changes_with_both_gridcraft_palettes_and_light_fallback
     set_mode(&mut h, "system");
     assert_eq!(h.ctx.options(|o| o.theme_preference), ThemePreference::System);
     // egui switches between these two style slots when the OS appearance changes.
-    for (theme, tokens) in [(Theme::Light, Tokens::ufrgs_dia()), (Theme::Dark, Tokens::ufrgs_noite())] {
+    for (theme, tokens) in [(Theme::Light, Tokens::light()), (Theme::Dark, Tokens::dark())] {
         let style = h.ctx.style_of(theme);
         assert_eq!(style.visuals.panel_fill, tokens.window);
         assert_eq!(style.visuals.window_fill, tokens.menu_bg);
@@ -107,22 +106,15 @@ fn system_tracks_live_os_changes_with_both_gridcraft_palettes_and_light_fallback
 #[test]
 fn ribbon_selects_system_and_fixed_modes_ignore_subsequent_os_changes() {
     let mut h = harness(UiState::default());
-    // Suíte FisiLab: "UFRGS Noite" is the default, whatever the OS says.
-    system_theme(&mut h, Some(Theme::Light));
-    assert_appearance(&h, true);
-    assert_eq!(h.state().ui.theme_mode(), "ufrgsNoite");
+    system_theme(&mut h, Some(Theme::Dark));
+    assert_appearance(&h, false);
     h.state_mut().run("ui.ribbonTab", json!({"tab": "View"})).unwrap();
     h.run_steps(2);
     select_ribbon_theme(&mut h, "System");
     assert_eq!(preferences(&h)["systemTheme"], true);
-    assert_eq!(h.ctx.theme(), Theme::Light);
-    assert_appearance(&h, false);
-    for (label, dark, preference) in [
-        ("UFRGS Dia", false, ThemePreference::Light),
-        ("Dark", true, ThemePreference::Dark),
-        ("Light", false, ThemePreference::Light),
-        ("UFRGS Noite", true, ThemePreference::Dark),
-    ] {
+    assert_eq!(h.ctx.theme(), Theme::Dark);
+    assert_appearance(&h, true);
+    for (label, dark, preference) in [("Noite", true, ThemePreference::Dark), ("Dia", false, ThemePreference::Light)] {
         select_ribbon_theme(&mut h, label);
         assert_eq!(preferences(&h)["systemTheme"], false);
         assert_eq!(h.ctx.options(|o| o.theme_preference), preference);
@@ -176,16 +168,15 @@ fn title_bar_switch_and_file_menu_choose_the_theme() {
     // #194: one click in the title bar switches light/dark; File › Display theme offers all three.
     let mut h = harness(UiState::default());
     system_theme(&mut h, Some(Theme::Light));
-    assert_appearance(&h, true);
-    h.get_by_role_and_label(egui::accesskit::Role::CheckBox, "Dark Mode").click();
-    h.run_steps(2);
-    assert_eq!(preferences(&h)["dark"], false);
-    assert_eq!(preferences(&h)["systemTheme"], false);
-    assert_eq!(preferences(&h)["palette"], "ufrgs", "the switch keeps the palette");
     assert_appearance(&h, false);
     h.get_by_role_and_label(egui::accesskit::Role::CheckBox, "Dark Mode").click();
     h.run_steps(2);
+    assert_eq!(preferences(&h)["dark"], true);
+    assert_eq!(preferences(&h)["systemTheme"], false);
     assert_appearance(&h, true);
+    h.get_by_role_and_label(egui::accesskit::Role::CheckBox, "Dark Mode").click();
+    h.run_steps(2);
+    assert_appearance(&h, false);
 
     // File opens Backstage; its Options page holds the Office Theme choice (#331).
     h.get_by_label("File").click();
@@ -203,22 +194,19 @@ fn title_bar_switch_and_file_menu_choose_the_theme() {
 }
 
 #[test]
-fn ufrgs_noite_is_the_default_and_every_theme_survives_reload() {
-    let h = harness(UiState::default());
-    assert_eq!(h.state().ui.theme_mode(), "ufrgsNoite");
-    assert_appearance(&h, true);
-    assert_eq!(h.ctx.global_style().visuals.panel_fill, fisilab_brand::palette::NOITE.painel);
-    // An old ui.json without a palette reads as the UFRGS one.
-    let old: UiState = serde_json::from_value(json!({"dark": false})).unwrap();
-    assert_eq!(old.theme_mode(), "ufrgsDia");
-    assert_eq!(serde_json::from_value::<UiState>(json!({"palette": "sepia"})).unwrap().palette, Default::default());
-    let mut h = harness(UiState::default());
-    for (mode, dark) in [("ufrgsDia", false), ("light", false), ("dark", true), ("ufrgsNoite", true)] {
-        set_mode(&mut h, mode);
-        assert_eq!(h.state().ui.theme_mode(), mode);
-        assert_appearance(&h, dark);
-        let restored = harness(serde_json::from_value(preferences(&h)).unwrap());
-        assert_eq!(restored.state().ui.theme_mode(), mode);
-        assert_appearance(&restored, dark);
+fn noite_and_dia_are_the_original_dark_and_light_themes() {
+    use gridcraft_ui_egui::theme::{THEMES, parse_theme_mode, theme_label};
+    assert_eq!(THEMES[0], ("dark", "Noite"));
+    assert_eq!(THEMES[1], ("light", "Dia"));
+    assert_eq!(theme_label("dark"), "Noite");
+    for (name, mode) in [("noite", "dark"), ("Night", "dark"), ("DIA", "light"), ("day", "light"), ("system", "system")] {
+        assert_eq!(parse_theme_mode(name), Some(mode));
     }
+    // Upstream default: light, with the original tokens.
+    let h = harness(UiState::default());
+    assert_eq!(h.state().ui.theme_mode(), "light");
+    let mut h = harness(UiState::default());
+    set_mode(&mut h, "noite");
+    assert_eq!(h.state().ui.theme_mode(), "dark");
+    assert_appearance(&h, true);
 }

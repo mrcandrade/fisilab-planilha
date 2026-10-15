@@ -75,10 +75,6 @@ pub struct UiState {
     /// The manual preference, retained when following the system appearance.
     pub dark: bool,
     pub system_theme: bool,
-    /// The colour family: the Suíte FisiLab "UFRGS" themes (default) or the upstream classic
-    /// ones. `dark` / `system_theme` pick its variant. A malformed saved value reads as UFRGS.
-    #[serde(deserialize_with = "lenient_palette")]
-    pub palette: theme::Palette,
     pub ribbon_tab: String,
     pub ribbon_collapsed: bool,
     pub formula_bar_expanded: bool,
@@ -115,11 +111,6 @@ pub fn clamp_interface_scale(percent: f64) -> Option<u16> {
     percent.is_finite().then(|| percent.round().clamp(INTERFACE_SCALE_MIN as f64, INTERFACE_SCALE_MAX as f64) as u16)
 }
 
-fn lenient_palette<'de, D: serde::Deserializer<'de>>(d: D) -> Result<theme::Palette, D::Error> {
-    let v = Json::deserialize(d)?;
-    Ok(serde_json::from_value(v).unwrap_or_default())
-}
-
 fn lenient_interface_scale<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16, D::Error> {
     let v = Json::deserialize(d)?;
     Ok(v.as_f64().and_then(clamp_interface_scale).unwrap_or(100))
@@ -128,10 +119,8 @@ fn lenient_interface_scale<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16
 impl Default for UiState {
     fn default() -> Self {
         UiState {
-            // Suíte FisiLab: "UFRGS Noite" is the default theme.
-            dark: true,
+            dark: false,
             system_theme: false,
-            palette: theme::Palette::Ufrgs,
             ribbon_tab: "Home".into(),
             ribbon_collapsed: false,
             formula_bar_expanded: false,
@@ -162,14 +151,14 @@ impl UiState {
         clamp_interface_scale(self.interface_scale as f64).unwrap_or(100) as f32 / 100.0
     }
 
-    /// The `view.theme` mode of the preference: `system`, or one of the four fixed themes.
+    /// The `view.theme` mode of the preference: `system`, `light` ("Dia") or `dark` ("Noite").
     pub fn theme_mode(&self) -> &'static str {
-        match (self.system_theme, self.palette, self.dark) {
-            (true, ..) => "system",
-            (false, theme::Palette::Ufrgs, true) => "ufrgsNoite",
-            (false, theme::Palette::Ufrgs, false) => "ufrgsDia",
-            (false, theme::Palette::Classic, true) => "dark",
-            (false, theme::Palette::Classic, false) => "light",
+        if self.system_theme {
+            "system"
+        } else if self.dark {
+            "dark"
+        } else {
+            "light"
         }
     }
 }
@@ -358,12 +347,6 @@ impl SheetApp {
     pub fn setup_context_for_language(ctx: &egui::Context, dark: bool, language: i18n::Language) {
         ctx.set_fonts(theme::font_definitions_for_language(language));
         theme::apply(ctx, dark);
-    }
-
-    /// [`SheetApp::setup_context_for_language`] with the colour palette of the preferences.
-    pub fn setup_context_for(ctx: &egui::Context, ui: &UiState) {
-        ctx.set_fonts(theme::font_definitions_for_language(ui.language));
-        theme::apply_palette(ctx, ui.palette, ui.dark);
     }
 
     /// The font names the active workbook uses: every style's font plus the theme's heading/body
@@ -632,14 +615,13 @@ impl SheetApp {
                 Ok(json!({"on": self.ui.dark}))
             }
             "view.theme" => {
-                match p.get("mode").and_then(Json::as_str) {
+                match p.get("mode").and_then(Json::as_str).and_then(theme::parse_theme_mode) {
                     Some("system") => self.ui.system_theme = true,
-                    Some(mode @ ("ufrgsNoite" | "ufrgsDia" | "light" | "dark")) => {
-                        self.ui.palette = if mode.starts_with("ufrgs") { theme::Palette::Ufrgs } else { theme::Palette::Classic };
-                        self.ui.dark = matches!(mode, "ufrgsNoite" | "dark");
+                    Some(mode @ ("light" | "dark")) => {
+                        self.ui.dark = mode == "dark";
                         self.ui.system_theme = false;
                     }
-                    _ => return Some(Err("theme mode must be ufrgsNoite, ufrgsDia, system, light, or dark".into())),
+                    _ => return Some(Err("theme mode must be system, light (dia), or dark (noite)".into())),
                 }
                 Ok(json!({"mode": self.ui.theme_mode()}))
             }
@@ -1045,7 +1027,7 @@ impl SheetApp {
             if self.fonts_set {
                 self.fonts_ready = true;
             } else {
-                SheetApp::setup_context_for(ctx, &self.ui);
+                SheetApp::setup_context_for_language(ctx, self.ui.dark, self.ui.language);
                 self.fonts_set = true;
                 // The rebuilt set has no workbook fonts yet: bind them again once it is active.
                 self.fonts_bound.clear();
@@ -1071,10 +1053,6 @@ impl SheetApp {
                     ctx.request_repaint();
                 }
             }
-        }
-        if theme::palette(ctx) != self.ui.palette {
-            theme::apply_palette(ctx, self.ui.palette, self.ui.dark);
-            ctx.request_repaint();
         }
         if let Some(answer) = self.desktop_theme.take_change() {
             self.desktop_dark = Some(answer);

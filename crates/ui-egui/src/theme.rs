@@ -137,119 +137,9 @@ impl Tokens {
         }
     }
 
-    /// "UFRGS Noite": the Suíte FisiLab dark theme (the default), from the brand's tones.
-    pub fn ufrgs_noite() -> Tokens {
-        Tokens::from_tons(&fisilab_brand::palette::NOITE)
-    }
-
-    /// "UFRGS Dia": the Suíte FisiLab light theme, from the brand's tones.
-    pub fn ufrgs_dia() -> Tokens {
-        Tokens::from_tons(&fisilab_brand::palette::DIA)
-    }
-
-    /// Maps the brand roles onto the spreadsheet's tokens. Document content (the white grid, its
-    /// gridlines and black cell text) keeps the upstream colours: it shows what the file holds.
-    fn from_tons(t: &fisilab_brand::palette::Tons) -> Tokens {
-        let dark = t.escuro;
-        Tokens {
-            dark,
-            window: t.painel,
-            ribbon: t.elevado,
-            ribbon_border: t.borda,
-            text: t.texto,
-            text_dim: t.texto_fraco,
-            text_disabled: mix(t.texto_fraco, t.painel, 0.45),
-            accent: t.destaque,
-            accent_dark: t.destaque_hover,
-            accent_soft: mix(t.elevado, t.destaque, if dark { 0.28 } else { 0.16 }),
-            hover: t.hover,
-            pressed: t.ativo,
-            separator: t.borda,
-            grid_bg: Color32::WHITE,
-            desk: t.fundo,
-            gridline: Color32::from_rgb(0xE1, 0xE1, 0xE1),
-            header_bg: t.painel,
-            header_text: t.texto_fraco,
-            header_line: t.borda,
-            header_sel_bg: t.ativo,
-            header_sel_text: if dark { mix(t.destaque_hover, Color32::WHITE, 0.35) } else { t.destaque },
-            header_all_bg: mix(t.painel, t.destaque, if dark { 0.40 } else { 0.25 }),
-            // Over the white grid in both themes, so the darker flame red reads best.
-            sel_fill: Color32::from_rgba_unmultiplied(0xAD, 0x2C, 0x22, if dark { 0x24 } else { 0x1C }),
-            sel_border: fisilab_brand::palette::VERMELHO,
-            input_bg: if dark { t.fundo } else { t.elevado },
-            input_border: t.borda,
-            tab_bar: t.painel,
-            tab_active: t.elevado,
-            status_bar: t.painel,
-            cell_text: Color32::BLACK,
-            menu_bg: t.elevado,
-            shadow: Color32::from_black_alpha(if dark { 90 } else { 40 }),
-            danger: t.erro,
-            notice_warn_bg: mix(t.painel, t.aviso, if dark { 0.22 } else { 0.18 }),
-            notice_warn_border: mix(t.painel, t.aviso, 0.5),
-            notice_info_bg: mix(t.painel, t.foco, if dark { 0.22 } else { 0.12 }),
-            notice_info_border: mix(t.painel, t.foco, 0.45),
-        }
-    }
-
-    /// The tokens of a palette in its light or dark variant.
-    pub fn of(palette: Palette, dark: bool) -> Tokens {
-        match (palette, dark) {
-            (Palette::Ufrgs, true) => Tokens::ufrgs_noite(),
-            (Palette::Ufrgs, false) => Tokens::ufrgs_dia(),
-            (Palette::Classic, true) => Tokens::dark(),
-            (Palette::Classic, false) => Tokens::light(),
-        }
-    }
-
     pub fn get(ctx: &egui::Context) -> Tokens {
-        Tokens::of(palette(ctx), ctx.global_style().visuals.dark_mode)
+        if ctx.global_style().visuals.dark_mode { Tokens::dark() } else { Tokens::light() }
     }
-}
-
-/// Opaque blend of two colours (`t` = 0 gives `a`, 1 gives `b`).
-fn mix(a: Color32, b: Color32, t: f32) -> Color32 {
-    let t = t.clamp(0.0, 1.0);
-    let ch = |x: u8, y: u8| (x as f32 + (y as f32 - x as f32) * t).round().clamp(0.0, 255.0) as u8;
-    Color32::from_rgb(ch(a.r(), b.r()), ch(a.g(), b.g()), ch(a.b(), b.b()))
-}
-
-/// The interface's colour family. Each has a light and a dark variant; the saved light/dark (or
-/// system) preference picks between them.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum Palette {
-    /// Suíte FisiLab: "UFRGS Noite" (dark, the default) and "UFRGS Dia" (light).
-    #[default]
-    Ufrgs,
-    /// The upstream GridCraft colours: "Light" and "Dark".
-    Classic,
-}
-
-/// The display themes, in menu order: `(view.theme mode, label)`. "System" follows the desktop's
-/// light/dark choice within the current palette.
-pub const THEMES: [(&str, &str); 5] =
-    [("ufrgsNoite", "UFRGS Noite"), ("ufrgsDia", "UFRGS Dia"), ("system", "System"), ("light", "Light"), ("dark", "Dark")];
-
-/// The menu label of a `view.theme` mode.
-pub fn theme_label(mode: &str) -> &'static str {
-    THEMES.iter().find(|(id, _)| *id == mode).map_or("UFRGS Noite", |(_, label)| *label)
-}
-
-fn palette_id() -> egui::Id {
-    egui::Id::new("fisilab-planilha.theme.palette")
-}
-
-/// The palette installed in this context (UFRGS until [`apply_palette`] says otherwise).
-pub fn palette(ctx: &egui::Context) -> Palette {
-    ctx.data(|d| d.get_temp::<Palette>(palette_id())).unwrap_or_default()
-}
-
-/// Installs a palette's light and dark visuals and shows the `dark` one.
-pub fn apply_palette(ctx: &egui::Context, palette: Palette, dark: bool) {
-    ctx.data_mut(|d| d.insert_temp(palette_id(), palette));
-    apply(ctx, dark);
 }
 
 pub const UI: &str = "ui";
@@ -785,33 +675,18 @@ pub fn symbol_face_installed() -> bool {
     }
 }
 
-/// Installs the current palette's ([`palette`]) light and dark visuals and shows the `dark` one.
 pub fn apply(ctx: &egui::Context, dark: bool) {
-    let palette = palette(ctx);
-    // Install both variants before System can switch between the style slots.
+    // Install both palettes before System can switch between the style slots.
     for theme in [egui::Theme::Light, egui::Theme::Dark] {
         let dark = theme == egui::Theme::Dark;
-        let t = Tokens::of(palette, dark);
-        let mut v = match palette {
-            Palette::Ufrgs => fisilab_brand::palette::visuals(dark),
-            Palette::Classic if dark => Visuals::dark(),
-            Palette::Classic => Visuals::light(),
-        };
+        let t = if dark { Tokens::dark() } else { Tokens::light() };
+        let mut v = if dark { Visuals::dark() } else { Visuals::light() };
         v.panel_fill = t.window;
         v.window_fill = t.menu_bg;
         v.extreme_bg_color = t.input_bg;
         v.selection.bg_fill = t.accent_soft;
-        match palette {
-            Palette::Ufrgs => {
-                // Selected items keep the body text over the soft red; links use the CTA blue.
-                v.selection.stroke = Stroke::new(1.0, t.text);
-                v.hyperlink_color = fisilab_brand::palette::tons(dark).foco;
-            }
-            Palette::Classic => {
-                v.selection.stroke = Stroke::new(1.0, t.accent);
-                v.hyperlink_color = t.accent;
-            }
-        }
+        v.selection.stroke = Stroke::new(1.0, t.accent);
+        v.hyperlink_color = t.accent;
         v.widgets.noninteractive.fg_stroke = Stroke::new(1.0, t.text);
         v.widgets.inactive.fg_stroke = Stroke::new(1.0, t.text);
         v.widgets.inactive.weak_bg_fill = Color32::TRANSPARENT;
@@ -840,6 +715,25 @@ pub fn apply(ctx: &egui::Context, dark: bool) {
 /// Model colour → egui colour.
 pub fn color32(rgb: [u8; 3]) -> Color32 {
     Color32::from_rgb(rgb[0], rgb[1], rgb[2])
+}
+
+/// The display themes, in menu order: `(view.theme mode, label)`. "Noite" and "Dia" are the
+/// upstream Dark and Light themes under their Portuguese names; "System" follows the desktop.
+pub const THEMES: [(&str, &str); 3] = [("dark", "Noite"), ("light", "Dia"), ("system", "System")];
+
+/// The menu label of a `view.theme` mode.
+pub fn theme_label(mode: &str) -> &'static str {
+    THEMES.iter().find(|(id, _)| *id == mode).map_or("Dia", |(_, label)| *label)
+}
+
+/// The `view.theme` mode named by `name` (the ids, "noite"/"dia" or "night"/"day", any case).
+pub fn parse_theme_mode(name: &str) -> Option<&'static str> {
+    match name.trim().to_lowercase().as_str() {
+        "dark" | "noite" | "night" => Some("dark"),
+        "light" | "dia" | "day" => Some("light"),
+        "system" => Some("system"),
+        _ => None,
+    }
 }
 
 #[cfg(test)]
@@ -1058,86 +952,5 @@ mod tests {
         let loaded = try_load(&[(bad_s.as_str(), 0), (good_s.as_str(), 0)]);
         assert_eq!(loaded.map(|fd| fd.font.len()), Some(real.len()));
         let _ = std::fs::remove_dir_all(&dir);
-    }
-}
-
-#[cfg(test)]
-mod theme_tests {
-    use super::*;
-
-    fn lum(c: Color32) -> f32 {
-        let f = |x: u8| {
-            let s = x as f32 / 255.0;
-            if s <= 0.03928 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) }
-        };
-        0.2126 * f(c.r()) + 0.7152 * f(c.g()) + 0.0722 * f(c.b())
-    }
-
-    fn contrast(a: Color32, b: Color32) -> f32 {
-        let (x, y) = (lum(a), lum(b));
-        (x.max(y) + 0.05) / (x.min(y) + 0.05)
-    }
-
-    #[test]
-    fn ufrgs_themes_come_first_and_noite_is_the_default() {
-        assert_eq!(THEMES[0], ("ufrgsNoite", "UFRGS Noite"));
-        assert_eq!(THEMES[1], ("ufrgsDia", "UFRGS Dia"));
-        assert_eq!(Palette::default(), Palette::Ufrgs);
-        let ui = crate::UiState::default();
-        assert_eq!(ui.theme_mode(), "ufrgsNoite");
-        assert_eq!(ui.theme_preference(), egui::ThemePreference::Dark);
-        for (mode, _) in THEMES {
-            assert_eq!(theme_label(mode), THEMES.iter().find(|(m, _)| *m == mode).map(|(_, l)| *l).unwrap_or_default());
-        }
-    }
-
-    #[test]
-    fn ufrgs_tokens_follow_the_brand_tones() {
-        use fisilab_brand::palette::{DIA, NOITE};
-        for (t, tons) in [(Tokens::ufrgs_noite(), NOITE), (Tokens::ufrgs_dia(), DIA)] {
-            assert_eq!(t.dark, tons.escuro);
-            assert_eq!(t.window, tons.painel);
-            assert_eq!(t.ribbon, tons.elevado);
-            assert_eq!(t.text, tons.texto);
-            assert_eq!(t.accent, tons.destaque);
-            assert_eq!(t.desk, tons.fundo);
-            assert_eq!(t.separator, tons.borda);
-            assert_eq!(t.danger, tons.erro);
-            // The grid is the document: white with black text, as upstream.
-            assert_eq!(t.grid_bg, Color32::WHITE);
-            assert_eq!(t.cell_text, Color32::BLACK);
-        }
-        assert_eq!(Tokens::of(Palette::Ufrgs, true), Tokens::ufrgs_noite());
-        assert_eq!(Tokens::of(Palette::Ufrgs, false), Tokens::ufrgs_dia());
-        assert_eq!(Tokens::of(Palette::Classic, true), Tokens::dark());
-        assert_eq!(Tokens::of(Palette::Classic, false), Tokens::light());
-    }
-
-    #[test]
-    fn every_theme_keeps_text_readable() {
-        for t in [Tokens::ufrgs_noite(), Tokens::ufrgs_dia(), Tokens::light(), Tokens::dark()] {
-            for bg in [t.window, t.ribbon, t.menu_bg, t.input_bg, t.tab_active, t.status_bar, t.hover] {
-                assert!(contrast(t.text, bg) >= 4.5, "text {:?} on {bg:?} (dark: {})", t.text, t.dark);
-            }
-            assert!(contrast(t.text_dim, t.ribbon) >= 3.0, "dim text on the ribbon (dark: {})", t.dark);
-            assert!(contrast(t.header_text, t.header_bg) >= 3.0, "header text (dark: {})", t.dark);
-            assert!(contrast(t.header_sel_text, t.header_sel_bg) >= 3.0, "selected header text (dark: {})", t.dark);
-            assert!(contrast(t.text, t.accent_soft) >= 4.5, "text on the soft accent (dark: {})", t.dark);
-            assert!(contrast(t.text, t.notice_warn_bg) >= 4.5 && contrast(t.text, t.notice_info_bg) >= 4.5, "notice bars (dark: {})", t.dark);
-            assert!(contrast(t.sel_border, t.grid_bg) >= 3.0, "selection outline on the grid (dark: {})", t.dark);
-        }
-    }
-
-    #[test]
-    fn the_installed_palette_decides_the_tokens() {
-        let ctx = egui::Context::default();
-        assert_eq!(palette(&ctx), Palette::Ufrgs);
-        apply_palette(&ctx, Palette::Ufrgs, true);
-        assert_eq!(Tokens::get(&ctx), Tokens::ufrgs_noite());
-        assert_eq!(ctx.global_style().visuals.panel_fill, fisilab_brand::palette::NOITE.painel);
-        apply_palette(&ctx, Palette::Classic, false);
-        assert_eq!(Tokens::get(&ctx), Tokens::light());
-        apply_palette(&ctx, Palette::Ufrgs, false);
-        assert_eq!(Tokens::get(&ctx), Tokens::ufrgs_dia());
     }
 }

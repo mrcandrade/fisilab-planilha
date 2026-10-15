@@ -265,7 +265,7 @@ fn file_menu(app: &mut SheetApp, ui: &mut Ui) {
     }
 }
 
-/// UFRGS Noite / UFRGS Dia / System / Light / Dark, as in the View tab's Display theme box (`view.theme`).
+/// Noite / Dia / System, as in the View tab's Display theme box (`view.theme`).
 fn theme_choices(app: &mut SheetApp, ui: &mut Ui) {
     let lang = app.ui.language;
     let mode = app.ui.theme_mode();
