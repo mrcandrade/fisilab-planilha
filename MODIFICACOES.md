@@ -79,6 +79,8 @@ lista o que foi alterado em relação ao GridCraft 0.7.0 e por quê.
   código e a documentação técnica em `docs/` (histórico do projeto original).
 - As licenças (`LICENSE-MIT`, `LICENSE-APACHE`) e o `ATTRIBUTION.md` do projeto original.
 - O aplicativo web (`apps/gridcraft-web`) só teve o nome visível trocado.
+- O empacotamento Linux (AppImage e .deb) usa os novos nomes, ícones e identificadores da suíte
+  (`br.ufrgs.fisilab.planilha`, `fisilab-planilha`).
 
 ## Segurança e privacidade
 - O salvamento automático (que sobrescreve o `.xlsx` aberto, sem cópia de segurança) já vem
