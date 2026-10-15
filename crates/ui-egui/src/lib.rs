@@ -46,7 +46,7 @@ pub mod desktop_theme;
 
 /// How this app presents itself in the Suíte FisiLab (splash screen and the suite's About window).
 pub const APP_INFO: fisilab_brand::AppInfo = fisilab_brand::AppInfo {
-    name: "FisiPlanilha",
+    name: "Planilha",
     tagline: "Planilhas",
     equivalent: "Microsoft Excel",
     version: env!("CARGO_PKG_VERSION"),
@@ -58,7 +58,7 @@ pub const APP_INFO: fisilab_brand::AppInfo = fisilab_brand::AppInfo {
 /// The project this app is based on.
 pub const UPSTREAM_URL: &str = "https://github.com/storytold/gridcraft";
 /// Where users report problems with this build.
-pub const ISSUES_URL: &str = "https://github.com/mrcandrade/fisiplanilha/issues";
+pub const ISSUES_URL: &str = "https://github.com/mrcandrade/fisilab-planilha/issues";
 
 /// The links the Help menus and the About dialog offer: `(label, url)`.
 pub const COMMUNITY_LINKS: [(&str, &str); 4] = [
@@ -580,7 +580,7 @@ impl SheetApp {
         if e.contains("is not available right now") {
             self.toast = Some((e, now_ms()));
         } else {
-            self.message = Some(("FisiPlanilha".into(), clean_error(&e)));
+            self.message = Some(("Planilha".into(), clean_error(&e)));
         }
     }
 
@@ -732,7 +732,7 @@ impl SheetApp {
         for req in self.session.take_ui_requests() {
             match req {
                 UiRequest::Dialog(name, params) => self.open_dialog(&name, params),
-                UiRequest::Message(m) => self.message = Some(("FisiPlanilha".into(), m)),
+                UiRequest::Message(m) => self.message = Some(("Planilha".into(), m)),
                 UiRequest::EditCell(text) => {
                     let text = text.map(|text| {
                         self.session
@@ -809,7 +809,7 @@ impl SheetApp {
             Ok(r) => self.after_open(Some(path), &r),
             // A password-protected workbook: ask for the password; the dialog opens it.
             Err(e) if e.contains(gridcraft_engine::io::PASSWORD_REQUIRED) => self.open_dialog("openPassword", json!({"path": path})),
-            Err(e) => self.message = Some(("FisiPlanilha".into(), clean_error(&e))),
+            Err(e) => self.message = Some(("Planilha".into(), clean_error(&e))),
         }
         self.after_engine();
     }
@@ -844,7 +844,7 @@ impl SheetApp {
         let vba: Vec<&str> = msgs.iter().copied().filter(|m| m.to_lowercase().contains("macro") || m.contains("VBA")).collect();
         if !vba.is_empty() {
             self.notice = Some(Notice {
-                text: "This workbook contains VBA macros. FisiPlanilha keeps them intact when you save, but does not run them.".into(),
+                text: "This workbook contains VBA macros. FisiLab Planilha keeps them intact when you save, but does not run them.".into(),
                 kind: NoticeKind::Warning,
                 action: Some(("What this means".into(), "macros".into())),
             });
@@ -952,7 +952,7 @@ impl SheetApp {
         let text = match self.session.active().map(|d| formula_locale::canonical(&text, ed.locale, &d.wb, ed.sheet, ed.cell)) {
             Some(Ok(text)) => text,
             Some(Err(error)) => {
-                self.message = Some(("FisiPlanilha".into(), error.to_string()));
+                self.message = Some(("Planilha".into(), error.to_string()));
                 self.editor = Some(ed);
                 self.session.mode = gridcraft_engine::Mode::Edit;
                 return false;
@@ -964,7 +964,7 @@ impl SheetApp {
             && let Some((dv, msg)) = gridcraft_engine::cmd::data::check_validation(&d.wb, ed.sheet, ed.cell, &text)
         {
             if dv.error_style == gridcraft_engine::model::ErrorStyle::Stop {
-                let title = if dv.error_title.is_empty() { "FisiPlanilha".to_string() } else { dv.error_title.clone() };
+                let title = if dv.error_title.is_empty() { "Planilha".to_string() } else { dv.error_title.clone() };
                 self.message = Some((title, msg));
                 self.editor = Some(ed);
                 self.session.mode = gridcraft_engine::Mode::Edit;
@@ -986,7 +986,7 @@ impl SheetApp {
                 true
             }
             Err(e) => {
-                self.message = Some(("FisiPlanilha".into(), clean_error(&e)));
+                self.message = Some(("Planilha".into(), clean_error(&e)));
                 self.editor = Some(ed);
                 self.session.mode = gridcraft_engine::Mode::Edit;
                 false
@@ -1122,7 +1122,7 @@ impl SheetApp {
                     self.backstage = None;
                     self.open_dialog("openPassword", json!({"name": name, "base64": b64}));
                 }
-                Err(e) => self.message = Some(("FisiPlanilha".into(), clean_error(&e))),
+                Err(e) => self.message = Some(("Planilha".into(), clean_error(&e))),
             }
             self.after_engine();
         }
@@ -1212,7 +1212,7 @@ impl SheetApp {
         // Window title.
         if let Some(d) = self.session.active() {
             let edited = if d.is_dirty() { format!(" — {}", self.ui.language.tr("Edited")) } else { String::new() };
-            let title = format!("{}{edited} — FisiPlanilha", d.display_title());
+            let title = format!("{}{edited} — Planilha", d.display_title());
             if self.grid.last_title.as_deref() != Some(title.as_str()) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
                 self.grid.last_title = Some(title);

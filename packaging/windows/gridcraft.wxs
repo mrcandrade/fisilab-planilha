@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  FisiPlanilha MSI (Suíte FisiLab; WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
+  Planilha MSI (Suíte FisiLab; WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
 
     wix build gridcraft.wxs -arch x64 -d Version=1.2.3 -d BinDir=... -d IconPath=... -o out.msi
 
-  Per-machine install into Program Files, a Start Menu shortcut, an optional desktop shortcut,
-  App Paths (Win+R `fisiplanilha`),
-  and FisiPlanilha offered under "Open with" (and in Settings > Default apps) for .xlsx, .xlsm,
+  Per-machine install into Program Files\Suite FisiLab\Planilha, a Start Menu shortcut, an optional desktop shortcut,
+  App Paths (Win+R `fisilab-planilha`),
+  and Planilha offered under "Open with" (and in Settings > Default apps) for .xlsx, .xlsm,
   .csv and .tsv, without taking over the user's default app for them.
 
-  UpgradeCode is fixed for FisiPlanilha (generated 2026-10-14; GridCraft's own MSI uses a
+  UpgradeCode is fixed for Planilha (generated 2026-10-14; GridCraft's own MSI uses a
   different one, so both can be installed): never change it, or upgrades install side by side
   instead of replacing the old version.
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
-      Name="FisiPlanilha"
+      Name="Planilha"
       Manufacturer="FisiLab — LARFIC/UFRGS"
       Version="$(var.Version)"
       UpgradeCode="0E0CF46C-9623-4053-BC19-A2C906B05CE4"
       Scope="perMachine"
       Compressed="yes"
       Language="1046" Codepage="1252">
-    <SummaryInformation Description="FisiPlanilha — Planilhas (Suíte FisiLab)" Manufacturer="FisiLab — LARFIC/UFRGS" />
+    <SummaryInformation Description="Planilha — Planilhas (Suíte FisiLab)" Manufacturer="FisiLab — LARFIC/UFRGS" />
     <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
          (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
     <MajorUpgrade AllowSameVersionUpgrades="yes"
-        DowngradeErrorMessage="Uma versão mais nova do FisiPlanilha já está instalada." />
+        DowngradeErrorMessage="Uma versão mais nova do Planilha já está instalada." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Icon Id="GridcraftIcon.ico" SourceFile="$(var.IconPath)" />
     <Property Id="ARPPRODUCTICON" Value="GridcraftIcon.ico" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/mrcandrade/larfic/tree/main/suite-fisilab" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/mrcandrade/fisiplanilha/releases" />
-    <Property Id="ARPHELPLINK" Value="https://github.com/mrcandrade/fisiplanilha/issues" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/mrcandrade/fisilab-planilha/releases" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/mrcandrade/fisilab-planilha/issues" />
 
     <!-- An explicit command-line value wins. Otherwise retain the previous installation's
          choice, defaulting to off for a fresh install. Run only in the first sequence so the
@@ -41,7 +41,7 @@
     <Property Id="DESKTOPSHORTCUT" Secure="yes" />
     <Property Id="SAVEDDESKTOPSHORTCUT" Secure="yes">
       <RegistrySearch Id="FindDesktopShortcutPreference" Root="HKLM"
-          Key="Software\FisiLab\FisiPlanilha\Installer" Name="DesktopShortcut" Type="raw" />
+          Key="Software\FisiLab\Planilha\Installer" Name="DesktopShortcut" Type="raw" />
     </Property>
     <SetProperty Id="DESKTOPSHORTCUT" Action="LoadDesktopShortcutPreference" Value="1"
         After="AppSearch" Sequence="first"
@@ -56,10 +56,10 @@
     <EnsureTable Id="ListBox" />
     <UI>
       <TextStyle Id="GridcraftUIFont" FaceName="Segoe UI" Size="9" />
-      <Dialog Id="DesktopShortcutDlg" Width="320" Height="150" Title="Instalação do FisiPlanilha" NoMinimize="yes">
-        <Control Id="Heading" Type="Text" X="15" Y="15" Width="290" Height="20" Text="Instalar o FisiPlanilha" />
+      <Dialog Id="DesktopShortcutDlg" Width="320" Height="150" Title="Instalação do Planilha" NoMinimize="yes">
+        <Control Id="Heading" Type="Text" X="15" Y="15" Width="290" Height="20" Text="Instalar o Planilha" />
         <Control Id="Description" Type="Text" X="15" Y="40" Width="290" Height="28"
-            Text="Instalar o FisiPlanilha para todas as pessoas que usam este computador." />
+            Text="Instalar o Planilha para todas as pessoas que usam este computador." />
         <Control Id="DesktopShortcutCheckbox" Type="CheckBox" X="15" Y="76" Width="290" Height="18"
             Property="DesktopShortcutChoice" CheckBoxValue="1" Text="Criar um atalho na área de &amp;trabalho" />
         <Control Id="Install" Type="PushButton" X="165" Y="118" Width="65" Height="20"
@@ -77,7 +77,7 @@
 
       <!-- Windows Installer requires these support dialogs for authored full UI (ICE20).
            They contain only installer messages and standard response controls. -->
-      <Dialog Id="GridcraftErrorDlg" Width="320" Height="120" Title="Instalação do FisiPlanilha" ErrorDialog="yes" NoMinimize="yes">
+      <Dialog Id="GridcraftErrorDlg" Width="320" Height="120" Title="Instalação do Planilha" ErrorDialog="yes" NoMinimize="yes">
         <Control Id="ErrorText" Type="Text" X="15" Y="15" Width="290" Height="65" TabSkip="no" />
         <Control Id="A" Type="PushButton" X="15" Y="90" Width="65" Height="20" Text="Abort" TabSkip="yes">
           <Publish Event="EndDialog" Value="ErrorAbort" />
@@ -101,7 +101,7 @@
           <Publish Event="EndDialog" Value="ErrorYes" />
         </Control>
       </Dialog>
-      <Dialog Id="FilesInUse" Width="320" Height="190" Title="Instalação do FisiPlanilha" NoMinimize="yes">
+      <Dialog Id="FilesInUse" Width="320" Height="190" Title="Instalação do Planilha" NoMinimize="yes">
         <Control Id="Description" Type="Text" X="15" Y="15" Width="290" Height="35"
             Text="Close the applications listed below, then choose Retry. Ignore may require a restart." />
         <Control Id="Files" Type="ListBox" X="15" Y="55" Width="290" Height="85" Property="FileInUseProcess" />
@@ -115,20 +115,20 @@
           <Publish Event="EndDialog" Value="Exit" />
         </Control>
       </Dialog>
-      <Dialog Id="SetupCompleteDlg" Width="320" Height="110" Title="Instalação do FisiPlanilha" NoMinimize="yes">
-        <Control Id="Message" Type="Text" X="15" Y="20" Width="290" Height="35" Text="A instalação do FisiPlanilha foi concluída." />
+      <Dialog Id="SetupCompleteDlg" Width="320" Height="110" Title="Instalação do Planilha" NoMinimize="yes">
+        <Control Id="Message" Type="Text" X="15" Y="20" Width="290" Height="35" Text="A instalação do Planilha foi concluída." />
         <Control Id="Close" Type="PushButton" X="240" Y="75" Width="65" Height="20" Default="yes" Cancel="yes" Text="Close">
           <Publish Event="EndDialog" Value="Return" />
         </Control>
       </Dialog>
-      <Dialog Id="SetupCanceledDlg" Width="320" Height="110" Title="Instalação do FisiPlanilha" NoMinimize="yes">
-        <Control Id="Message" Type="Text" X="15" Y="20" Width="290" Height="35" Text="A instalação do FisiPlanilha foi cancelada." />
+      <Dialog Id="SetupCanceledDlg" Width="320" Height="110" Title="Instalação do Planilha" NoMinimize="yes">
+        <Control Id="Message" Type="Text" X="15" Y="20" Width="290" Height="35" Text="A instalação do Planilha foi cancelada." />
         <Control Id="Close" Type="PushButton" X="240" Y="75" Width="65" Height="20" Default="yes" Cancel="yes" Text="Close">
           <Publish Event="EndDialog" Value="Return" />
         </Control>
       </Dialog>
-      <Dialog Id="SetupFailedDlg" Width="320" Height="110" Title="Instalação do FisiPlanilha" NoMinimize="yes">
-        <Control Id="Message" Type="Text" X="15" Y="20" Width="290" Height="35" Text="A instalação do FisiPlanilha não pôde ser concluída. Veja a mensagem ou o log do instalador." />
+      <Dialog Id="SetupFailedDlg" Width="320" Height="110" Title="Instalação do Planilha" NoMinimize="yes">
+        <Control Id="Message" Type="Text" X="15" Y="20" Width="290" Height="35" Text="A instalação do Planilha não pôde ser concluída. Veja a mensagem ou o log do instalador." />
         <Control Id="Close" Type="PushButton" X="240" Y="75" Width="65" Height="20" Default="yes" Cancel="yes" Text="Close">
           <Publish Event="EndDialog" Value="Return" />
         </Control>
@@ -149,12 +149,14 @@
     </AdminUISequence>
 
     <StandardDirectory Id="ProgramFiles6432Folder">
-      <Directory Id="INSTALLFOLDER" Name="FisiPlanilha" />
+      <Directory Id="SuiteFisiLabFolder" Name="Suite FisiLab">
+        <Directory Id="INSTALLFOLDER" Name="Planilha" />
+      </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder" />
     <StandardDirectory Id="DesktopFolder" />
 
-    <Feature Id="Main" Title="FisiPlanilha" Level="1">
+    <Feature Id="Main" Title="Planilha" Level="1">
       <ComponentGroupRef Id="GridcraftFiles" />
     </Feature>
   </Package>
@@ -162,59 +164,59 @@
   <Fragment>
     <ComponentGroup Id="GridcraftFiles" Directory="INSTALLFOLDER">
       <Component Id="GridcraftApp" Guid="DA776BC8-B681-4051-AAF6-F5CAF01FF27F">
-        <File Id="GridcraftExe" Source="$(var.BinDir)\fisiplanilha.exe" KeyPath="yes">
-          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="FisiPlanilha"
-              Description="FisiPlanilha — Planilhas (Suíte FisiLab)" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
+        <File Id="GridcraftExe" Source="$(var.BinDir)\fisilab-planilha.exe" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Planilha"
+              Description="Planilha — Planilhas (Suíte FisiLab)" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
               Icon="GridcraftIcon.ico" IconIndex="0" />
         </File>
 
-        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\fisiplanilha.exe" Value="[#GridcraftExe]" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\fisilab-planilha.exe" Value="[#GridcraftExe]" Type="string" />
 
-        <!-- ProgIds: how Explorer opens a file with FisiPlanilha. Nothing here sets HKCR\.<ext>'s
+        <!-- ProgIds: how Explorer opens a file with Planilha. Nothing here sets HKCR\.<ext>'s
              default value, so the user's current default app is left alone. -->
-        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.FisiPlanilha.Workbook" Value="Pasta de trabalho do FisiPlanilha" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.FisiPlanilha.Workbook\DefaultIcon" Value="&quot;[#GridcraftExe]&quot;,0" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.FisiPlanilha.Workbook\shell\open\command" Value="&quot;[#GridcraftExe]&quot; &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.FisiPlanilha.TextData" Value="Dados de texto do FisiPlanilha" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.FisiPlanilha.TextData\DefaultIcon" Value="&quot;[#GridcraftExe]&quot;,0" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.FisiPlanilha.TextData\shell\open\command" Value="&quot;[#GridcraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.Planilha.Workbook" Value="Pasta de trabalho do Planilha" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.Planilha.Workbook\DefaultIcon" Value="&quot;[#GridcraftExe]&quot;,0" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.Planilha.Workbook\shell\open\command" Value="&quot;[#GridcraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.Planilha.TextData" Value="Dados de texto do Planilha" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.Planilha.TextData\DefaultIcon" Value="&quot;[#GridcraftExe]&quot;,0" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\FisiLab.Planilha.TextData\shell\open\command" Value="&quot;[#GridcraftExe]&quot; &quot;%1&quot;" Type="string" />
 
         <!-- "Open with": Windows reads only the value names under OpenWithProgids; the data is
              ignored (WiX rejects an empty Value, so it repeats the ProgId). -->
-        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsx\OpenWithProgids" Name="FisiLab.FisiPlanilha.Workbook" Value="FisiLab.FisiPlanilha.Workbook" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsm\OpenWithProgids" Name="FisiLab.FisiPlanilha.Workbook" Value="FisiLab.FisiPlanilha.Workbook" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsx\OpenWithProgids" Name="FisiLab.Planilha.Workbook" Value="FisiLab.Planilha.Workbook" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsm\OpenWithProgids" Name="FisiLab.Planilha.Workbook" Value="FisiLab.Planilha.Workbook" Type="string" />
         <!-- .xlsb and .ods are imported (data only) into a new workbook that saves as .xlsx. -->
-        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsb\OpenWithProgids" Name="FisiLab.FisiPlanilha.Workbook" Value="FisiLab.FisiPlanilha.Workbook" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\.ods\OpenWithProgids" Name="FisiLab.FisiPlanilha.Workbook" Value="FisiLab.FisiPlanilha.Workbook" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\.csv\OpenWithProgids" Name="FisiLab.FisiPlanilha.TextData" Value="FisiLab.FisiPlanilha.TextData" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\.tsv\OpenWithProgids" Name="FisiLab.FisiPlanilha.TextData" Value="FisiLab.FisiPlanilha.TextData" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsb\OpenWithProgids" Name="FisiLab.Planilha.Workbook" Value="FisiLab.Planilha.Workbook" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.ods\OpenWithProgids" Name="FisiLab.Planilha.Workbook" Value="FisiLab.Planilha.Workbook" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.csv\OpenWithProgids" Name="FisiLab.Planilha.TextData" Value="FisiLab.Planilha.TextData" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.tsv\OpenWithProgids" Name="FisiLab.Planilha.TextData" Value="FisiLab.Planilha.TextData" Type="string" />
 
-        <!-- Settings > Default apps: lets the user pick FisiPlanilha for these types. -->
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Capabilities" Name="ApplicationName" Value="FisiPlanilha" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Capabilities" Name="ApplicationDescription" Value="Planilha livre (Suíte FisiLab) para arquivos .xlsx, CSV e TSV" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Capabilities\FileAssociations" Name=".xlsx" Value="FisiLab.FisiPlanilha.Workbook" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Capabilities\FileAssociations" Name=".xlsm" Value="FisiLab.FisiPlanilha.Workbook" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Capabilities\FileAssociations" Name=".csv" Value="FisiLab.FisiPlanilha.TextData" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Capabilities\FileAssociations" Name=".tsv" Value="FisiLab.FisiPlanilha.TextData" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="FisiPlanilha" Value="Software\FisiLab\FisiPlanilha\Capabilities" Type="string" />
+        <!-- Settings > Default apps: lets the user pick Planilha for these types. -->
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Capabilities" Name="ApplicationName" Value="Planilha" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Capabilities" Name="ApplicationDescription" Value="Planilha livre (Suíte FisiLab) para arquivos .xlsx, CSV e TSV" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Capabilities\FileAssociations" Name=".xlsx" Value="FisiLab.Planilha.Workbook" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Capabilities\FileAssociations" Name=".xlsm" Value="FisiLab.Planilha.Workbook" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Capabilities\FileAssociations" Name=".csv" Value="FisiLab.Planilha.TextData" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Capabilities\FileAssociations" Name=".tsv" Value="FisiLab.Planilha.TextData" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="FisiLab.Planilha" Value="Software\FisiLab\Planilha\Capabilities" Type="string" />
       </Component>
 
       <Component Id="GridcraftCli">
-        <File Id="GridcraftCliExe" Source="$(var.BinDir)\fisiplanilha-cli.exe" KeyPath="yes" />
+        <File Id="GridcraftCliExe" Source="$(var.BinDir)\fisilab-planilha-cli.exe" KeyPath="yes" />
       </Component>
 
       <!-- Persist both on and off, independently of the optional shortcut. AppSearch reads
            this before MajorUpgrade removes the previous product. -->
       <Component Id="DesktopShortcutPreference">
-        <RegistryValue Root="HKLM" Key="Software\FisiLab\FisiPlanilha\Installer" Name="DesktopShortcut"
+        <RegistryValue Root="HKLM" Key="Software\FisiLab\Planilha\Installer" Name="DesktopShortcut"
             Value="[DESKTOPSHORTCUT]" Type="string" KeyPath="yes" />
       </Component>
       <Component Id="DesktopShortcutComponent" Directory="DesktopFolder" Condition="DESKTOPSHORTCUT = &quot;1&quot;">
-        <Shortcut Id="DesktopShortcut" Name="FisiPlanilha" Description="FisiPlanilha — Planilhas (Suíte FisiLab)"
+        <Shortcut Id="DesktopShortcut" Name="Planilha" Description="Planilha — Planilhas (Suíte FisiLab)"
             Target="[#GridcraftExe]" WorkingDirectory="INSTALLFOLDER" Icon="GridcraftIcon.ico" IconIndex="0" />
         <!-- HKMU resolves to HKLM for this per-machine package, so another account can
              uninstall the marker too. MSI root -1 also satisfies ICE43 for this shortcut. -->
-        <RegistryValue Root="HKMU" Key="Software\FisiLab\FisiPlanilha\Installer" Name="DesktopShortcutComponent"
+        <RegistryValue Root="HKMU" Key="Software\FisiLab\Planilha\Installer" Name="DesktopShortcutComponent"
             Value="1" Type="integer" KeyPath="yes" />
       </Component>
     </ComponentGroup>

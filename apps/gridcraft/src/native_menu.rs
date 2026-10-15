@@ -179,7 +179,7 @@ fn tree() -> Vec<(&'static str, Vec<Entry>)> {
                 ("Site da Suíte FisiLab", "url:https://github.com/mrcandrade/larfic/tree/main/suite-fisilab", None),
                 ("Manifesto pelas tecnologias livres", "url:https://github.com/mrcandrade/larfic/blob/main/suite-fisilab/MANIFESTO.md", None),
                 ("Projeto original (GridCraft)", "url:https://github.com/storytold/gridcraft", None),
-                ("Reportar um problema", "url:https://github.com/mrcandrade/fisiplanilha/issues", None),
+                ("Reportar um problema", "url:https://github.com/mrcandrade/fisilab-planilha/issues", None),
             ],
         ),
     ]
@@ -202,8 +202,8 @@ fn select_theme(app: &mut SheetApp, id: &str) -> bool {
 impl NativeMenu {
     pub fn install(ctx: &egui::Context) -> NativeMenu {
         let menu = Menu::new();
-        let app_menu = Submenu::new("FisiPlanilha", true);
-        let about = MenuItem::with_id("dialog:about", "About FisiPlanilha", true, None);
+        let app_menu = Submenu::new("Planilha", true);
+        let about = MenuItem::with_id("dialog:about", "About Planilha", true, None);
         let _ = app_menu.append_items(&[
             &about,
             &PredefinedMenuItem::separator(),

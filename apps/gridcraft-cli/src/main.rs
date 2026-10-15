@@ -1,24 +1,24 @@
-//! Headless FisiPlanilha (GridCraft).
+//! Headless Planilha (GridCraft).
 //!
 //! ```text
-//! fisiplanilha-cli info <file> [--json]
-//! fisiplanilha-cli convert <in> <out> [--sheet NAME]
-//! fisiplanilha-cli eval <formula> [--in FILE] [--sheet S] [--cell A1] [--json]
-//! fisiplanilha-cli cat <file> [--range A1:D20] [--sheet S] [--formulas] [--csv]
-//! fisiplanilha-cli check <file-or-dir>... [--json] [--tolerance 1e-9] [--max-report N]
-//! fisiplanilha-cli run [--in FILE | --sample NAME] [--cmd 'id={json}']... [--script FILE.jsonl] [--out FILE] [--print RANGE] [--quiet]
-//! fisiplanilha-cli commands [--json] [--search X]
-//! fisiplanilha-cli functions [--json] [--search X] [--category C]
-//! fisiplanilha-cli mcp [--connect PORT] [--in FILE | --sample NAME]
-//! fisiplanilha-cli send <port> <method> [json]
-//! fisiplanilha-cli version | --version
+//! fisilab-planilha-cli info <file> [--json]
+//! fisilab-planilha-cli convert <in> <out> [--sheet NAME]
+//! fisilab-planilha-cli eval <formula> [--in FILE] [--sheet S] [--cell A1] [--json]
+//! fisilab-planilha-cli cat <file> [--range A1:D20] [--sheet S] [--formulas] [--csv]
+//! fisilab-planilha-cli check <file-or-dir>... [--json] [--tolerance 1e-9] [--max-report N]
+//! fisilab-planilha-cli run [--in FILE | --sample NAME] [--cmd 'id={json}']... [--script FILE.jsonl] [--out FILE] [--print RANGE] [--quiet]
+//! fisilab-planilha-cli commands [--json] [--search X]
+//! fisilab-planilha-cli functions [--json] [--search X] [--category C]
+//! fisilab-planilha-cli mcp [--connect PORT] [--in FILE | --sample NAME]
+//! fisilab-planilha-cli send <port> <method> [json]
+//! fisilab-planilha-cli version | --version
 //! ```
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
-/// `println!` that ends the program quietly when stdout is closed (`fisiplanilha-cli commands |
+/// `println!` that ends the program quietly when stdout is closed (`fisilab-planilha-cli commands |
 /// head`) instead of panicking on a broken pipe.
 macro_rules! outln {
     ($($arg:tt)*) => {{
@@ -35,19 +35,19 @@ use gridcraft_engine::Session;
 use serde_json::{Value, json};
 
 const USAGE: &str = "usage:
-  fisiplanilha-cli info <file> [--json]                      sheets, used ranges, tables, charts, names
-  fisiplanilha-cli convert <in> <out> [--sheet NAME]         xlsx/csv/tsv/json/html by extension
-  fisiplanilha-cli eval <formula> [--in FILE] [--sheet S] [--cell A1] [--json]
-  fisiplanilha-cli cat <file> [--range A1:D20] [--sheet S] [--formulas] [--csv]
-  fisiplanilha-cli check <file-or-dir>... [--json] [--tolerance 1e-9] [--max-report N]
+  fisilab-planilha-cli info <file> [--json]                      sheets, used ranges, tables, charts, names
+  fisilab-planilha-cli convert <in> <out> [--sheet NAME]         xlsx/csv/tsv/json/html by extension
+  fisilab-planilha-cli eval <formula> [--in FILE] [--sheet S] [--cell A1] [--json]
+  fisilab-planilha-cli cat <file> [--range A1:D20] [--sheet S] [--formulas] [--csv]
+  fisilab-planilha-cli check <file-or-dir>... [--json] [--tolerance 1e-9] [--max-report N]
                         cached-value calc oracle + XLSX round-trip fidelity (exit 1 on any difference)
-  fisiplanilha-cli run [--in FILE | --sample NAME] [--cmd 'id={json}']... [--script FILE.jsonl]
+  fisilab-planilha-cli run [--in FILE | --sample NAME] [--cmd 'id={json}']... [--script FILE.jsonl]
                         [--out FILE] [--print RANGE] [--quiet]
-  fisiplanilha-cli commands [--json] [--search X]
-  fisiplanilha-cli functions [--json] [--search X] [--category C]
-  fisiplanilha-cli mcp [--connect PORT] [--in FILE | --sample NAME]
-  fisiplanilha-cli send <port> <method> [json]
-  fisiplanilha-cli version";
+  fisilab-planilha-cli commands [--json] [--search X]
+  fisilab-planilha-cli functions [--json] [--search X] [--category C]
+  fisilab-planilha-cli mcp [--connect PORT] [--in FILE | --sample NAME]
+  fisilab-planilha-cli send <port> <method> [json]
+  fisilab-planilha-cli version";
 
 /// stdout went away. A reader that stopped early (a closed pipe) ends the program quietly; any
 /// other write error is reported.
@@ -55,7 +55,7 @@ fn stdout_failed(e: std::io::Error) -> ! {
     if e.kind() == std::io::ErrorKind::BrokenPipe {
         std::process::exit(0);
     }
-    eprintln!("fisiplanilha-cli: can't write to stdout: {e}");
+    eprintln!("fisilab-planilha-cli: can't write to stdout: {e}");
     std::process::exit(1);
 }
 
@@ -64,7 +64,7 @@ fn main() -> ExitCode {
     let rest = args.get(1..).unwrap_or_default();
     let r = match args.first().map(String::as_str) {
         Some("--version" | "-V" | "version") => {
-            outln!("fisiplanilha-cli {}", env!("CARGO_PKG_VERSION"));
+            outln!("fisilab-planilha-cli {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
         Some("--help" | "-h" | "help") => {
@@ -87,7 +87,7 @@ fn main() -> ExitCode {
     match r {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
-            eprintln!("fisiplanilha-cli: {e}");
+            eprintln!("fisilab-planilha-cli: {e}");
             ExitCode::FAILURE
         }
     }
@@ -493,7 +493,7 @@ fn functions(args: &[String]) -> Result<(), String> {
 }
 
 /// `mcp` (headless, in-process engine) or `mcp --connect PORT|HOST:PORT` (drive a running app
-/// started with `fisiplanilha --control PORT`). JSON-RPC on stdin/stdout; logs on stderr.
+/// started with `fisilab-planilha --control PORT`). JSON-RPC on stdin/stdout; logs on stderr.
 fn mcp(args: &[String]) -> Result<(), String> {
     use gridcraft_mcp::{Backend, Headless, Remote, Server, control_addr};
     let a = Args::parse(args, &["connect", "in", "sample"], &[])?;
@@ -503,7 +503,7 @@ fn mcp(args: &[String]) -> Result<(), String> {
             let addr = control_addr(c);
             Box::new(
                 Remote::connect(&addr)
-                    .map_err(|e| format!("cannot connect to the FisiPlanilha app at {addr}: {e} (start it with `fisiplanilha --control PORT`)"))?,
+                    .map_err(|e| format!("cannot connect to the FisiLab Planilha app at {addr}: {e} (start it with `fisilab-planilha --control PORT`)"))?,
             )
         }
         None => {
@@ -519,7 +519,7 @@ fn mcp(args: &[String]) -> Result<(), String> {
             Box::new(Headless::with_session(session))
         }
     };
-    eprintln!("fisiplanilha-cli: MCP server on stdio ({})", backend.describe());
+    eprintln!("fisilab-planilha-cli: MCP server on stdio ({})", backend.describe());
     let stdin = std::io::stdin();
     let stdout = std::io::stdout();
     Server::new(backend).serve(stdin.lock(), stdout.lock()).map_err(|e| e.to_string())
@@ -539,7 +539,7 @@ fn send(args: &[String]) -> Result<(), String> {
     }
     let addr = control_addr(port);
     let mut r = Remote::connect(&addr)
-        .map_err(|e| format!("cannot connect to the FisiPlanilha app at {addr}: {e} (start it with `fisiplanilha --control {port}`)"))?;
+        .map_err(|e| format!("cannot connect to the FisiLab Planilha app at {addr}: {e} (start it with `fisilab-planilha --control {port}`)"))?;
     let v = r.call(method, params)?;
     outln!("{}", pretty(&v));
     Ok(())

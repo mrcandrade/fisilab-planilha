@@ -91,7 +91,7 @@ impl Backend for Remote {
                 self.conn = None;
                 self.roundtrip(&line).map_err(|e| {
                     self.conn = None;
-                    format!("FisiPlanilha app at {} is not reachable: {e}", self.addr)
+                    format!("FisiLab Planilha app at {} is not reachable: {e}", self.addr)
                 })?
             }
         };
@@ -108,6 +108,6 @@ impl Backend for Remote {
     }
 
     fn describe(&self) -> String {
-        format!("connected to the FisiPlanilha app at {}", self.addr)
+        format!("connected to the FisiLab Planilha app at {}", self.addr)
     }
 }

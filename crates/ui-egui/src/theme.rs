@@ -238,7 +238,7 @@ pub fn theme_label(mode: &str) -> &'static str {
 }
 
 fn palette_id() -> egui::Id {
-    egui::Id::new("fisiplanilha.theme.palette")
+    egui::Id::new("fisilab-planilha.theme.palette")
 }
 
 /// The palette installed in this context (UFRGS until [`apply_palette`] says otherwise).

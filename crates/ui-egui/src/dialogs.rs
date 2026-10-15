@@ -674,7 +674,7 @@ impl Dialog {
             "commandSearch" => Dialog::custom("commandSearch", "Search Commands", json!({})),
             "agents" => Dialog::custom("agents", "Agent Control", json!({})),
             "about" => {
-                let mut d = Dialog::custom("about", "About FisiPlanilha", json!({}));
+                let mut d = Dialog::custom("about", "About Planilha", json!({}));
                 d.tab = match p("tab").as_str() {
                     Some(t @ ("Contributors" | "Models")) => t.to_string(),
                     _ => "About".into(),
@@ -776,7 +776,7 @@ impl Dialog {
             "pickList" => Dialog::custom("pickList", "Pick From List", json!({})),
             "saveCopy" => Dialog::custom("saveCopy", "Save a Copy", json!({"format": p("format")})),
             "saveChanges" => Dialog::custom("saveChanges", "Save Changes?", json!({"title": p("title")})),
-            "start" => Dialog::custom("start", "FisiPlanilha", json!({})),
+            "start" => Dialog::custom("start", "Planilha", json!({})),
             "comments" => {
                 app.grid.pane = None;
                 app.run_or_alert("review.showComments", json!({"on": true}));
@@ -1063,10 +1063,10 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
                 "solverResults" => solver_results(app, ui, &mut d, &mut open),
                 "spelling" => spelling(app, ui, &mut d, &mut open),
                 "agents" => {
-                    ui.label("FisiPlanilha is fully drivable by agents. Every menu item, button and gesture is a command:");
+                    ui.label("FisiLab Planilha is fully drivable by agents. Every menu item, button and gesture is a command:");
                     ui.add_space(4.0);
                     ui.monospace(
-                        "fisiplanilha --control 7979           # JSON-lines control channel\nfisiplanilha-cli mcp --connect 7979   # MCP bridged to this window\nfisiplanilha-cli mcp                  # headless MCP server",
+                        "fisilab-planilha --control 7979           # JSON-lines control channel\nfisilab-planilha-cli mcp --connect 7979   # MCP bridged to this window\nfisilab-planilha-cli mcp                  # headless MCP server",
                     );
                     ui.add_space(4.0);
                     ui.label(format!("{} engine commands are available. See docs/mcp.md and docs/control-protocol.md.", gridcraft_engine::command_specs().len()));
@@ -1510,7 +1510,7 @@ fn about(ui: &mut egui::Ui, d: &mut Dialog) {
 /// preserved VBA project. Mirrors Excel's Developer ▸ Macros list, but is honest that VBA is
 /// preserved and not executed.
 fn macros(ui: &mut egui::Ui, d: &mut Dialog) {
-    ui.label("Automation in this workbook. FisiPlanilha runs its own scripts; a file's VBA project is preserved but not executed.");
+    ui.label("Automation in this workbook. FisiLab Planilha runs its own scripts; a file's VBA project is preserved but not executed.");
     ui.add_space(6.0);
     let items: Vec<Json> = d.result.as_ref().and_then(Json::as_array).cloned().unwrap_or_default();
     if items.is_empty() {

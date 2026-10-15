@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/fisilab/fisiplanilha-256.png" alt="Ícone do FisiPlanilha" width="128">
+  <img src="assets/fisilab/fisilab-planilha-256.png" alt="Ícone do Planilha" width="128">
 </p>
 
-<h1 align="center">FisiPlanilha</h1>
+<h1 align="center">Planilha · Suíte FisiLab</h1>
 
 <p align="center">
   <b>Planilhas</b><br>
@@ -40,7 +40,7 @@
   virtualizada que só desenha o que está na tela.
 - **Automatizável:** cada botão, item de menu, caixa de diálogo e gesto é um comando que pode ser
   executado por um canal de controle JSON, por um servidor **MCP** ou pela linha de comando
-  (`fisiplanilha-cli`).
+  (`fisilab-planilha-cli`).
 - **Sem assinatura:** sem servidor de licenças e sem telemetria. A interface está disponível em
   português do Brasil (padrão) e em outros idiomas, com os temas de cores **UFRGS Noite** (padrão)
   e **UFRGS Dia**.
@@ -49,9 +49,9 @@
 
 ### Windows
 
-Baixe o instalador `FisiPlanilha-Setup-<versão>.exe` no portal de downloads da
+Baixe o instalador `FisiLab-Planilha-Setup-<versão>.exe` no portal de downloads da
 [Suíte FisiLab](https://github.com/mrcandrade/larfic/tree/main/suite-fisilab) ou na página de
-[Releases do FisiPlanilha](https://github.com/mrcandrade/fisiplanilha/releases) e execute-o.
+[Releases do Planilha](https://github.com/mrcandrade/fisilab-planilha/releases) e execute-o.
 
 ### Compilar a partir do código
 
@@ -59,18 +59,18 @@ Baixe o instalador `FisiPlanilha-Setup-<versão>.exe` no portal de downloads da
 Studio).
 
 ```sh
-cargo run --release -p gridcraft                          # aplicativo (fisiplanilha)
+cargo run --release -p gridcraft                          # aplicativo (fisilab-planilha)
 cargo run --release -p gridcraft -- --sample sales        # abre um exemplo (sales, budget, grades)
 cargo run --release -p gridcraft -- planilha.xlsx         # abre uma pasta de trabalho
-cargo build --release -p gridcraft -p gridcraft-cli       # gera fisiplanilha e fisiplanilha-cli em target/release
+cargo build --release -p gridcraft -p gridcraft-cli       # gera fisilab-planilha e fisilab-planilha-cli em target/release
 ```
 
 Os pacotes Rust mantêm os nomes do projeto original (`gridcraft`, `gridcraft-cli`); os executáveis
-gerados se chamam `fisiplanilha` e `fisiplanilha-cli`.
+gerados se chamam `fisilab-planilha` e `fisilab-planilha-cli`.
 
 ## Créditos
 
-O FisiPlanilha é baseado no [GridCraft](https://github.com/storytold/gridcraft), criado pelo
+O Planilha é baseado no [GridCraft](https://github.com/storytold/gridcraft), criado pelo
 ArtCraft Team e pelos contribuidores do GridCraft. Todo o trabalho da planilha, dos formatos de
 arquivo e das ferramentas é deles; o FisiLab alterou o nome, a identidade visual, o tema de cores,
 a tela de abertura, os links e o instalador (veja [MODIFICACOES.md](MODIFICACOES.md)).

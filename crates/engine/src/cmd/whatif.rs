@@ -403,7 +403,7 @@ fn store_scenarios(wb: &mut Workbook, list: &[Scenario]) {
             .map(|c| format!("\"{}\"", c.iter().collect::<String>().replace('"', "\"\"")))
             .collect::<Vec<_>>()
             .join("&"),
-        comment: "FisiPlanilha Scenario Manager data".into(),
+        comment: "FisiLab Planilha Scenario Manager data".into(),
         hidden: true,
     });
 }

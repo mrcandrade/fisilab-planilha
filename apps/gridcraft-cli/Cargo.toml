@@ -3,16 +3,16 @@ name = "gridcraft-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "FisiPlanilha command line: inspect, convert, evaluate, script and serve MCP without a window"
+description = "Planilha command line: inspect, convert, evaluate, script and serve MCP without a window"
 publish = false
-default-run = "fisiplanilha-cli"
+default-run = "fisilab-planilha-cli"
 
 [lints]
 workspace = true
 
-# The executable is fisiplanilha-cli(.exe); the package keeps its upstream name.
+# The executable is fisilab-planilha-cli(.exe); the package keeps its upstream name.
 [[bin]]
-name = "fisiplanilha-cli"
+name = "fisilab-planilha-cli"
 path = "src/main.rs"
 
 [dependencies]
