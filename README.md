@@ -55,6 +55,10 @@ Baixe o instalador `FisiLab-Planilha-Setup-<versão>.exe` na [página de downloa
 
 Baixe `FisiLab-Planilha-<versão>-x86_64.AppImage` na [página de downloads da Suíte FisiLab](https://github.com/mrcandrade/larfic/releases/latest), marque-o como executável (`chmod +x` ou Propriedades › Permitir executar) e abra-o; ou, no Ubuntu/Debian, instale o pacote `fisilab-planilha_<versão>_amd64.deb` com `sudo apt install ./fisilab-planilha_<versão>_amd64.deb`. Requer Ubuntu 22.04 ou mais recente (ou equivalente).
 
+### macOS
+
+Requer macOS 11 ou mais novo (Intel ou Apple Silicon). Baixe `FisiLab-Planilha-<versão>-macOS.dmg` na [página de downloads da Suíte FisiLab](https://github.com/mrcandrade/larfic/releases/latest), abra-o e arraste o Planilha para a pasta Aplicativos. Na primeira vez o macOS avisa que não pode verificar o desenvolvedor (o programa ainda não tem assinatura paga da Apple): abra **Ajustes do Sistema › Privacidade e Segurança** e clique em **Abrir Mesmo Assim** (no macOS 14 ou anterior também funciona clicar com o botão direito no app › **Abrir**).
+
 ### Compilar a partir do código
 
 É preciso ter o [Rust](https://rustup.rs) instalado (no Windows, com as Build Tools do Visual

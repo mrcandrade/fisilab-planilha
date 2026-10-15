@@ -81,6 +81,8 @@ lista o que foi alterado em relação ao GridCraft 0.7.0 e por quê.
 - O aplicativo web (`apps/gridcraft-web`) só teve o nome visível trocado.
 - O empacotamento Linux (AppImage e .deb) usa os novos nomes, ícones e identificadores da suíte
   (`br.ufrgs.fisilab.planilha`, `fisilab-planilha`).
+- O empacotamento macOS (DMG universal) usa os novos nomes, ícone e identificadores da suíte
+  (`Planilha.app`, `br.ufrgs.fisilab.planilha`).
 
 ## Segurança e privacidade
 - O salvamento automático (que sobrescreve o `.xlsx` aberto, sem cópia de segurança) já vem
